@@ -21,9 +21,9 @@ This project uses:
 - Dev Container for consistent setup across Mac, Windows, and Linux
 
 ### Directory Layout
-src/         # Source code and modules  
-tests/       # Unit tests  
-data/        # Local (gitignored) data files  
+src/         # Source code and modules
+tests/       # Unit tests
+data/        # Local (gitignored) data files
 
 ### License
 MIT (or specify one later)

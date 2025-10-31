@@ -9,6 +9,10 @@ dependencies = [
 ]
 
 [tool.ruff]
+exclude = [
+    "notebooks/",
+]
+
 line-length = 100
 target-version = "py311"
 
