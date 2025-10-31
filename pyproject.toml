@@ -1,0 +1,17 @@
+[project]
+name = "petase"
+version = "0.1.0"
+description = "Computational and experimental PETase enzyme research project"
+requires-python = ">=3.11"
+dependencies = [
+    "ruff",
+    "pytest"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"
