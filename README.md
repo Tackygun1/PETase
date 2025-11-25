@@ -26,4 +26,4 @@ tests/       # Unit tests
 data/        # Local (gitignored) data files
 
 ### License
-MIT (or specify one later)
+MIT 
