@@ -15,3 +15,4 @@ virtualenv==20.35.4
 scikit-learn
 numpy
 fair-esm
+torch
