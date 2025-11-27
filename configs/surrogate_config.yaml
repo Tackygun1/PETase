@@ -1,0 +1,18 @@
+data:
+  embeddings_path: data/processed/esm_embeddings.npz
+  labels_path: data/processed/labels.csv
+  id_col: id
+  y_col: label
+
+surrogate:
+  model_type: RandomForest
+  n_estimators: 200
+  max_depth: 10
+  random_state: 42
+  test_size: 0.2
+  shuffle: true
+
+output:
+  output_dir: models
+  model_filename: surrogate.pkl
+  meta_filename: surrogate_meta.json
