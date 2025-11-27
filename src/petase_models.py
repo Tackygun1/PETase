@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 from typing import Callable, Dict, List, Optional, Tuple
 
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import normalize
 
 __all__ = [
@@ -20,6 +22,16 @@ __all__ = [
 
 AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
 _ESM_EMBEDDER_CACHE: Dict[Tuple[str, str, int], Callable[[List[str]], np.ndarray]] = {}
+_XGB_MODULE = None
+
+
+def _get_xgb():
+    global _XGB_MODULE
+    if _XGB_MODULE is None:
+        import xgboost as xgb
+
+        _XGB_MODULE = xgb
+    return _XGB_MODULE
 
 
 def one_hot_encode(seq: str) -> np.ndarray:
@@ -88,10 +100,15 @@ def load_esm_embedder(
 
 class SurrogateModel:
     def __init__(self, encoder: Optional[Callable[[List[str]], np.ndarray]] = None):
-        # Random forest gives some notion of uncertainty via per-tree variance
-        self.model = RandomForestRegressor(
-            n_estimators=100,
-            max_depth=None,
+        xgb = _get_xgb()
+        self.model = xgb.XGBRegressor(
+            n_estimators=500,
+            max_depth=6,
+            learning_rate=0.05,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            reg_lambda=1.0,
+            tree_method="hist",
             n_jobs=-1,
             random_state=42,
         )
@@ -107,9 +124,17 @@ class SurrogateModel:
     def predict_with_uncertainty(self, seqs: List[str]) -> Tuple[np.ndarray, np.ndarray]:
         assert self._is_fitted, "Surrogate not fitted yet"
         X = self._encode(seqs)
-        # Use per-tree predictions to estimate variance
-        all_tree_preds = np.stack([tree.predict(X) for tree in self.model.estimators_], axis=1)
-        mean = all_tree_preds.mean(axis=1)
+        mean = self.model.predict(X)
+        xgb = _get_xgb()
+        booster = self.model.get_booster()
+        if booster is None:
+            return mean, np.zeros_like(mean)
+        dmat = xgb.DMatrix(X)
+        tree_outputs = []
+        for i in range(self.model.n_estimators):
+            preds = booster.predict(dmat, iteration_range=(i, i + 1))
+            tree_outputs.append(preds)
+        all_tree_preds = np.stack(tree_outputs, axis=1)
         std = all_tree_preds.std(axis=1)
         return mean, std
 

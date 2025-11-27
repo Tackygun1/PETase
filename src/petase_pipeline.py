@@ -85,7 +85,6 @@ def propose_single_mutants_guided(
     - mut_list: Optional list of (position, mutant_aa)
     """
     variants = []
-    allowed = allowed_positions(wt_seq)
 
     # Key known stabilizing mutations (from FAST-PETase and others)
     known_mutations = {
