@@ -1,6 +1,6 @@
 import numpy as np
 
-from acquisition.ram_esm import build_ram_scorer
+from src.acquisition.ram_esm import build_ram_scorer
 
 
 def test_ram_scorer_soft_topk(tmp_path):

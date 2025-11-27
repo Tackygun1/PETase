@@ -1,8 +1,8 @@
 import numpy as np
 
-from acquisition.acquisition import Candidate, apply_mutations, compute_acquisition, filter_by_distance
-from acquisition.qd_archive import QDArchive
-from acquisition.proposer import propose_from_neighbors
+from src.acquisition.acquisition import Candidate, apply_mutations, compute_acquisition, filter_by_distance
+from src.acquisition.qd_archive import QDArchive
+from src.acquisition.proposer import propose_from_neighbors
 
 
 def test_apply_mutations_single():

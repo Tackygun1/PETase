@@ -1,6 +1,6 @@
 import numpy as np
 
-from acquisition.retrieval import cosine_search, load_ref_embeddings, normalize, radius_filter
+from src.acquisition.retrieval import cosine_search, load_ref_embeddings, normalize, radius_filter
 
 
 def test_cosine_search_and_radius(tmp_path):

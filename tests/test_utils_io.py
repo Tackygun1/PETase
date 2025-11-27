@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-from utils.io import load_embeddings, load_labels_csv
+from src.utils.io import load_embeddings, load_labels_csv
 
 
 def test_load_labels_csv_success(tmp_path: Path):
