@@ -18,9 +18,9 @@ from typing import Any, Dict, Optional, Tuple
 import joblib
 import numpy as np
 import yaml
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
+from xgboost import XGBRegressor
 
 from ..utils.io import load_embeddings, load_labels_csv
 from .utils import align_X_y
@@ -38,10 +38,13 @@ class SurrogateConfig:
     y_col: str = "label"
 
     # Model
-    model_type: str = "RandomForest"  # currently only RF; extend later if needed
-    n_estimators: int = 200
-    max_depth: Optional[int] = 10
+    model_type: str = "XGBoost"  # currently only XGBoost; extend later if needed
+    n_estimators: int = 500
+    max_depth: Optional[int] = 6
     random_state: int = 42
+    learning_rate: float = 0.05
+    subsample: float = 0.8
+    colsample_bytree: float = 0.8
 
     # Training
     test_size: float = 0.2
@@ -75,6 +78,11 @@ def load_config(path: Path | str) -> SurrogateConfig:
             else int(v)
         ),
         random_state=int(get("surrogate", "random_state", SurrogateConfig.random_state)),
+        learning_rate=float(get("surrogate", "learning_rate", SurrogateConfig.learning_rate)),
+        subsample=float(get("surrogate", "subsample", SurrogateConfig.subsample)),
+        colsample_bytree=float(
+            get("surrogate", "colsample_bytree", SurrogateConfig.colsample_bytree)
+        ),
         test_size=float(get("surrogate", "test_size", SurrogateConfig.test_size)),
         shuffle=bool(get("surrogate", "shuffle", SurrogateConfig.shuffle)),
         output_dir=get("output", "output_dir", SurrogateConfig.output_dir),
@@ -94,12 +102,17 @@ class SurrogateModel:
         self._kept_ids: list[str] = []
 
     def _build_model(self):
-        if self.cfg.model_type.lower() == "randomforest":
-            return RandomForestRegressor(
+        if self.cfg.model_type.lower() in {"xgboost", "xgb"}:
+            return XGBRegressor(
                 n_estimators=self.cfg.n_estimators,
                 max_depth=self.cfg.max_depth,
+                learning_rate=self.cfg.learning_rate,
+                subsample=self.cfg.subsample,
+                colsample_bytree=self.cfg.colsample_bytree,
                 random_state=self.cfg.random_state,
-                n_jobs=-1,  # train fast on Linux box
+                reg_lambda=1.0,
+                tree_method="hist",
+                n_jobs=-1,
             )
         raise ValueError(f"Unsupported model_type: {self.cfg.model_type}")
 

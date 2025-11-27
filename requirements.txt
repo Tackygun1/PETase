@@ -12,3 +12,8 @@ Pygments==2.19.2
 pytest==8.4.2
 PyYAML==6.0.3
 virtualenv==20.35.4
+scikit-learn
+numpy
+xgboost
+fair-esm
+torch
