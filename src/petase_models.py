@@ -136,9 +136,7 @@ class EmbeddingCache:
             data = np.load(self.path, allow_pickle=False)
             seqs = data["seqs"]
             embs = data["embeddings"]
-            self.cache = {
-                str(seq): emb for seq, emb in zip(seqs.tolist(), embs)
-            }
+            self.cache = {str(seq): emb for seq, emb in zip(seqs.tolist(), embs)}
 
     def get(self, seqs: List[str]) -> np.ndarray:
         if not seqs:

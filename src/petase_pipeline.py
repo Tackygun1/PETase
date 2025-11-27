@@ -1,5 +1,5 @@
 import random
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from sklearn.metrics.pairwise import cosine_distances
@@ -52,9 +52,16 @@ def _maybe_get_esm_embedder(
 
 # 1-based positions to freeze (PETase numbering)
 FROZEN_POSITIONS = {
-    160, 206, 237,  # catalytic triad
-    87, 161, 185,   # oxyanion hole / cleft
-    203, 239, 273, 289  # disulfides
+    160,
+    206,
+    237,  # catalytic triad
+    87,
+    161,
+    185,  # oxyanion hole / cleft
+    203,
+    239,
+    273,
+    289,  # disulfides
 }
 
 
@@ -71,8 +78,7 @@ def allowed_positions(seq: str) -> List[int]:
 
 
 def propose_single_mutants_guided(
-    wt_seq: str,
-    mut_list: Optional[List[Tuple[int, str]]] = None
+    wt_seq: str, mut_list: Optional[List[Tuple[int, str]]] = None
 ) -> List[str]:
     """
     Generate single mutants guided by functional constraints and prior beneficial mutations.
@@ -83,16 +89,16 @@ def propose_single_mutants_guided(
 
     # Key known stabilizing mutations (from FAST-PETase and others)
     known_mutations = {
-        121: ['E', 'D'],  # S121E/D
-        186: ['H'],       # D186H
-        224: ['Q'],
-        233: ['K'],
-        280: ['A'],
-        95: ['N'],
-        201: ['I'],
-        159: ['H'],
-        229: ['Y'],
-        181: ['A', 'S']   # P181A/S relieves beta-sheet distortion
+        121: ["E", "D"],  # S121E/D
+        186: ["H"],  # D186H
+        224: ["Q"],
+        233: ["K"],
+        280: ["A"],
+        95: ["N"],
+        201: ["I"],
+        159: ["H"],
+        229: ["Y"],
+        181: ["A", "S"],  # P181A/S relieves beta-sheet distortion
     }
 
     if mut_list is None:
@@ -100,13 +106,13 @@ def propose_single_mutants_guided(
             wt_aa = wt_seq[pos - 1]
             for aa in aas:
                 if aa != wt_aa:
-                    mutant = wt_seq[:pos - 1] + aa + wt_seq[pos:]
+                    mutant = wt_seq[: pos - 1] + aa + wt_seq[pos:]
                     variants.append(mutant)
     else:
         for pos, aa in mut_list:
             wt_aa = wt_seq[pos - 1]
             if aa != wt_aa:
-                mutant = wt_seq[:pos - 1] + aa + wt_seq[pos:]
+                mutant = wt_seq[: pos - 1] + aa + wt_seq[pos:]
                 variants.append(mutant)
 
     return variants
@@ -178,10 +184,12 @@ def propose_double_mutants_guided(
 # 3. Simple QD archive + acquisition
 # ==================================
 
+
 class QDArchive:
     """
     Very simple QD archive over (mutation_count, stability_bin).
     """
+
     def __init__(self, bin_width: float = 0.5):
         self.bin_width = bin_width
         self.cells = {}  # (mut_count, stab_bin) -> (seq, score)
@@ -203,9 +211,7 @@ class QDArchive:
         return [v[0] for v in self.cells.values()]
 
 
-def acquisition_ucb(
-    mean: np.ndarray, std: np.ndarray, beta: float = 1.0
-) -> np.ndarray:
+def acquisition_ucb(mean: np.ndarray, std: np.ndarray, beta: float = 1.0) -> np.ndarray:
     """UCB = mean + beta * std; higher is better."""
     return mean + beta * std
 
@@ -214,7 +220,7 @@ def pick_diverse_batch(
     candidates: List[str],
     scores: np.ndarray,
     batch_size: int,
-    min_hamming: int = 3,         # kept for compatibility, not used
+    min_hamming: int = 3,  # kept for compatibility, not used
     min_embedding_dist: float = 0.05,
     embedding_provider: Optional[EmbeddingCache] = None,
 ) -> List[str]:
@@ -234,9 +240,7 @@ def pick_diverse_batch(
     if embedding_provider is None:
         selected: List[str] = []
         for seq, _ in ranked:
-            if not selected or all(
-                hamming_distance(seq, s) >= min_hamming for s in selected
-            ):
+            if not selected or all(hamming_distance(seq, s) >= min_hamming for s in selected):
                 selected.append(seq)
                 if len(selected) >= batch_size:
                     break
@@ -304,7 +308,9 @@ def initial_round(
 
     # 3) Fit surrogate
     encoder = (
-        embedding_provider.get if (use_esm and embedding_provider is not None) else make_one_hot_encoder()
+        embedding_provider.get
+        if (use_esm and embedding_provider is not None)
+        else make_one_hot_encoder()
     )
     if use_esm and embedding_provider is not None:
         print(f"Using ESM embeddings ({esm_model}) for surrogate features")
@@ -320,10 +326,7 @@ def initial_round(
     return surrogate, archive, seqs, stability_scores
 
 
-def propose_new_candidates(
-    base_seqs: List[str],
-    n_candidates: int = 500
-) -> List[str]:
+def propose_new_candidates(base_seqs: List[str], n_candidates: int = 500) -> List[str]:
     """Mutate around current elites to propose new candidates."""
     candidates = set()
     allowed = None  # lazily compute
@@ -401,6 +404,7 @@ def active_learning_round(
 # ==================================
 # 7. Putting it together
 # ==================================
+
 
 def run_pipeline(
     wt_seq: str,
