@@ -4,10 +4,13 @@ from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 from sklearn.metrics.pairwise import cosine_distances
 
+from pathlib import Path
+
 from petase_models import (
     AMINO_ACIDS,
     SurrogateModel,
     build_known_petase_index,
+    EmbeddingCache,
     load_esm_embedder,
     make_one_hot_encoder,
 )
@@ -114,7 +117,7 @@ def propose_double_mutants_guided(
     base_variants: List[str],
     max_variants: int = 500,
     max_dist: float = 0.2,
-    embedder: Optional[Callable[[List[str]], np.ndarray]] = None,
+    embedding_provider: Optional[EmbeddingCache] = None,
 ) -> List[str]:
     """
     Generate double mutants by combining known beneficial positions and then
@@ -155,12 +158,12 @@ def propose_double_mutants_guided(
     if not variants:
         return []
 
-    if embedder is None:
+    if embedding_provider is None:
         return list(variants)[:max_variants]
 
     # ESM embedding filter: keep only those close to WT in latent space
     all_seqs = [wt_seq] + list(variants)
-    all_embs = embedder(all_seqs)
+    all_embs = embedding_provider.get(all_seqs)
     wt_emb = all_embs[0].reshape(1, -1)
     var_embs = all_embs[1:]
 
@@ -213,10 +216,10 @@ def pick_diverse_batch(
     batch_size: int,
     min_hamming: int = 3,         # kept for compatibility, not used
     min_embedding_dist: float = 0.05,
-    embedder: Optional[Callable[[List[str]], np.ndarray]] = None,
+    embedding_provider: Optional[EmbeddingCache] = None,
 ) -> List[str]:
     """
-    Greedy diversity filter. Uses ESM embedding distance when an embedder is provided,
+    Greedy diversity filter. Uses ESM embedding distance when a provider is available,
     otherwise falls back to simple Hamming-distance diversity.
     """
     if not candidates:
@@ -228,7 +231,7 @@ def pick_diverse_batch(
         reverse=True,
     )
 
-    if embedder is None:
+    if embedding_provider is None:
         selected: List[str] = []
         for seq, _ in ranked:
             if not selected or all(
@@ -239,7 +242,7 @@ def pick_diverse_batch(
                     break
         return selected
 
-    embeddings = embedder(candidates)
+    embeddings = embedding_provider.get(candidates)
     # align embeddings with ranked order
     emb_map = {seq: emb for seq, emb in zip(candidates, embeddings)}
 
@@ -277,7 +280,7 @@ def initial_round(
     esm_model: str = "esm2_t6_8M_UR50D",
     esm_batch_size: int = 8,
     esm_device: Optional[str] = None,
-    embedder: Optional[Callable[[List[str]], np.ndarray]] = None,
+    embedding_provider: Optional[EmbeddingCache] = None,
 ):
     """
     Generate initial variants, score them with stability, and fit surrogate.
@@ -290,7 +293,7 @@ def initial_round(
         wt_seq,
         singles,
         max_variants=n_double,
-        embedder=embedder if use_esm else None,
+        embedding_provider=embedding_provider if use_esm else None,
     )
     seqs = [wt_seq] + singles + doubles
 
@@ -300,8 +303,10 @@ def initial_round(
         stability_scores.append(score_stability(s))
 
     # 3) Fit surrogate
-    encoder = embedder if (use_esm and embedder is not None) else make_one_hot_encoder()
-    if use_esm and embedder is not None:
+    encoder = (
+        embedding_provider.get if (use_esm and embedding_provider is not None) else make_one_hot_encoder()
+    )
+    if use_esm and embedding_provider is not None:
         print(f"Using ESM embeddings ({esm_model}) for surrogate features")
 
     surrogate = SurrogateModel(encoder=encoder)
@@ -349,7 +354,7 @@ def active_learning_round(
     n_candidates: int = 2000,
     batch_for_lab: int = 16,
     beta: float = 1.0,
-    embedder: Optional[Callable[[List[str]], np.ndarray]] = None,
+    embedding_provider: Optional[EmbeddingCache] = None,
 ) -> Dict:
     """
     One AL round:
@@ -372,7 +377,7 @@ def active_learning_round(
         candidates,
         ucb,
         batch_size=batch_for_lab,
-        embedder=embedder,
+        embedding_provider=embedding_provider,
     )
 
     # 4) Score chosen batch with "true" (proxy) stability
@@ -408,56 +413,68 @@ def run_pipeline(
     esm_model: str = "esm2_t6_8M_UR50D",
     esm_batch_size: int = 8,
     esm_device: Optional[str] = None,
+    embedding_cache_path: Optional[str] = None,
 ):
     set_reference_sequence(wt_seq)
-    embedder = _maybe_get_esm_embedder(use_esm, esm_model, esm_device, esm_batch_size)
-    esm_active = use_esm and embedder is not None
+    embedder_fn = _maybe_get_esm_embedder(use_esm, esm_model, esm_device, esm_batch_size)
+    embedding_provider = None
+    cache_path = None
+    if embedder_fn is not None:
+        default_cache = Path("data/processed") / f"esm_cache_{esm_model}.npz"
+        cache_path = Path(embedding_cache_path) if embedding_cache_path else default_cache
+        embedding_provider = EmbeddingCache(embedder_fn, str(cache_path))
 
-    if esm_active:
-        # Build ESM index of known PETase variants (currently just WT)
-        build_known_petase_index(
+    esm_active = use_esm and embedding_provider is not None
+
+    try:
+        if esm_active:
+            # Build ESM index of known PETase variants (currently just WT)
+            build_known_petase_index(
+                wt_seq,
+                model_name=esm_model,
+                device=esm_device,
+                batch_size=esm_batch_size,
+                embedder=embedding_provider.get,
+            )
+
+        print("Running initial round...")
+        surrogate, archive, train_seqs, train_stab = initial_round(
             wt_seq,
-            model_name=esm_model,
-            device=esm_device,
-            batch_size=esm_batch_size,
-            embedder=embedder,
+            n_single=initial_n_single,
+            n_double=initial_n_double,
+            use_esm=esm_active,
+            esm_model=esm_model,
+            esm_batch_size=esm_batch_size,
+            esm_device=esm_device,
+            embedding_provider=embedding_provider if esm_active else None,
         )
+        print(f"Initial training set size: {len(train_seqs)}")
+        print(f"Initial stability score range: {min(train_stab):.3f} to {max(train_stab):.3f}")
 
-    print("Running initial round...")
-    surrogate, archive, train_seqs, train_stab = initial_round(
-        wt_seq,
-        n_single=initial_n_single,
-        n_double=initial_n_double,
-        use_esm=esm_active,
-        esm_model=esm_model,
-        esm_batch_size=esm_batch_size,
-        esm_device=esm_device,
-        embedder=embedder,
-    )
-    print(f"Initial training set size: {len(train_seqs)}")
-    print(f"Initial stability score range: {min(train_stab):.3f} to {max(train_stab):.3f}")
+        for r in range(1, n_rounds + 1):
+            print(f"\n=== Active Learning Round {r} ===")
+            result = active_learning_round(
+                surrogate,
+                archive,
+                wt_seq,
+                n_candidates=n_candidates_per_round,
+                batch_for_lab=batch_for_lab,
+                beta=max(0.5, 2.0 / (r + 1)),  # anneal exploration
+                embedding_provider=embedding_provider if esm_active else None,
+            )
 
-    for r in range(1, n_rounds + 1):
-        print(f"\n=== Active Learning Round {r} ===")
-        result = active_learning_round(
-            surrogate,
-            archive,
-            wt_seq,
-            n_candidates=n_candidates_per_round,
-            batch_for_lab=batch_for_lab,
-            beta=max(0.5, 2.0 / (r + 1)),  # anneal exploration
-            embedder=embedder if esm_active else None,
-        )
+            print("Selected batch for lab testing:")
+            for s, stab in zip(result["batch_sequences"], result["batch_stabilities"]):
+                muts = mutation_list(wt_seq, s)
+                print(f" Sequence: {s}\n Mutations: {muts}\n Stability proxy: {stab:.3f}\n")
 
-        print("Selected batch for lab testing:")
-        for s, stab in zip(result["batch_sequences"], result["batch_stabilities"]):
-            muts = mutation_list(wt_seq, s)
-            print(f" Sequence: {s}\n Mutations: {muts}\n Stability proxy: {stab:.3f}\n")
-
-    # At the end you have:
-    # - archive.elites(): diverse high-stability variants
-    # - last selected batch: good lab candidates
-    return archive
+        # At the end you have:
+        # - archive.elites(): diverse high-stability variants
+        # - last selected batch: good lab candidates
+        return archive
+    finally:
+        if embedding_provider is not None:
+            embedding_provider.save()
 
 
 if __name__ == "__main__":

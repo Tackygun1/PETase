@@ -12,6 +12,7 @@ __all__ = [
     "make_one_hot_encoder",
     "load_esm_embedder",
     "SurrogateModel",
+    "EmbeddingCache",
     "build_known_petase_index",
     "KNOWN_PETASE_INDEX",
     "KNOWN_PETASE_EMBEDDINGS",
@@ -115,6 +116,50 @@ class SurrogateModel:
 
 KNOWN_PETASE_INDEX: Dict[str, str] = {}
 KNOWN_PETASE_EMBEDDINGS: Optional[np.ndarray] = None
+
+
+class EmbeddingCache:
+    """Disk-backed cache for sequence embeddings."""
+
+    def __init__(
+        self,
+        embedder: Callable[[List[str]], np.ndarray],
+        cache_path: Optional[str] = None,
+    ):
+        from pathlib import Path
+
+        self.embedder = embedder
+        self.path = Path(cache_path) if cache_path else None
+        self.cache: Dict[str, np.ndarray] = {}
+        self._dirty = False
+        if self.path and self.path.exists():
+            data = np.load(self.path, allow_pickle=False)
+            seqs = data["seqs"]
+            embs = data["embeddings"]
+            self.cache = {
+                str(seq): emb for seq, emb in zip(seqs.tolist(), embs)
+            }
+
+    def get(self, seqs: List[str]) -> np.ndarray:
+        if not seqs:
+            return np.zeros((0, 0), dtype=np.float32)
+        missing = [s for s in seqs if s not in self.cache]
+        if missing:
+            new_embs = self.embedder(missing)
+            for seq, emb in zip(missing, new_embs):
+                self.cache[seq] = emb
+            if self.path:
+                self._dirty = True
+        return np.stack([self.cache[s] for s in seqs], axis=0)
+
+    def save(self):
+        if not self.path or not self._dirty or not self.cache:
+            return
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        seqs = np.array(list(self.cache.keys()))
+        embs = np.stack(list(self.cache.values()), axis=0)
+        np.savez_compressed(self.path, seqs=seqs, embeddings=embs)
+        self._dirty = False
 
 
 def build_known_petase_index(
