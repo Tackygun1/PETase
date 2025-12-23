@@ -1,163 +1,34 @@
-"""End-to-end round runner: propose mutations, score with surrogate (+optional RAM-ESM),
-and select a diverse batch via QD.
+"""
+End-to-end round runner:
+- Propose mutations with retrieval-guided MutationModel.
+- Score candidates with the surrogate ensemble (stability/activity).
+- Select a diverse batch via BatchDesigner + QD archive under hard constraints.
 
-This stays light: it assumes embeddings are precomputed and stored in a .npz keyed by candidate IDs.
+Requires:
+    - Sequence DB CSV with columns: id, sequence (must include the wild-type ID).
+    - Embedding NPZ keyed by sequence IDs (used for retrieval; can also be reused as surrogate features).
+    - Trained surrogate .pt from src.models.surrogate.train_from_config.
 """
 
 from __future__ import annotations
 
 import argparse
-import importlib
 from pathlib import Path
-from typing import Callable, List, Optional, Sequence
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
-import pandas as pd
 
-from ..acquisition import Candidate, design_batch
-from ..acquisition.proposer import propose_mutations, propose_from_neighbors
-from ..acquisition.acquisition import ram_esm_wrapper
-from ..acquisition.ram_esm import build_ram_scorer
-from ..acquisition.retrieval import cosine_search, load_ref_embeddings, normalize, radius_filter
+from ..acquisition.batch_design import BatchDesignConfig, BatchDesigner, MutationModel
+from ..acquisition.acquisition import HardConstraints
 from ..acquisition.qd_archive import QDArchive
-from ..models.surrogate import SurrogateModel
-from ..utils.io import load_embeddings
+from ..models.surrogate import SurrogateEnsemble
+from ..petase_models import one_hot_encode  # fallback featurizer
 
 
-def _load_ram_callable(module_path: str) -> Callable[[List[str]], np.ndarray]:
-    mod = importlib.import_module(module_path)
-    scorer = getattr(mod, "score", None)
-    if scorer is None:
-        raise ValueError(f"RAM module {module_path} must expose a `score(List[str]) -> np.ndarray`")
-    return scorer
-
-
-def attach_surrogate_preds(model: SurrogateModel, embeddings: dict, candidates: List[Candidate]) -> None:
-    """Mutates candidates in-place with surrogate mean/std. Missing embeddings are skipped."""
-    X: List[np.ndarray] = []
-    idx: List[int] = []
-    for i, c in enumerate(candidates):
-        emb = embeddings.get(c.seq_id)
-        if emb is None:
-            continue
-        X.append(emb)
-        idx.append(i)
-    if not X:
-        return
-    X_mat = np.vstack(X)
-    preds = model.predict(X_mat)
-    for j, i in enumerate(idx):
-        candidates[i].pred_stab_mean = float(preds[j])
-        candidates[i].pred_stab_std = 0.0  # placeholder; replace with ensemble SD if available
-
-
-def attach_ram_scores_from_embeddings(
-    ram_scorer: Callable, candidates: List[Candidate], emb_lookup: dict
-) -> None:
-    scores = ram_scorer(candidates, emb_lookup)
-    for c, s in zip(candidates, scores):
-        c.ram_score = float(s)
-
-
-def _load_ref_sequences(seq_path: Path) -> dict:
-    """Load reference sequences from CSV/TSV with columns id,sequence."""
-    df = pd.read_csv(seq_path)
-    if "id" not in df.columns or "sequence" not in df.columns:
-        raise ValueError("Reference sequence file must have columns: id, sequence")
-    return dict(zip(df["id"].astype(str), df["sequence"].astype(str)))
-
-
-def run_round(
-    parent_id: str,
-    parent_seq: str,
-    candidate_sites: Sequence[int],
-    embeddings_path: Path,
-    surrogate_dir: Path,
-    batch_size: int = 8,
-    max_mutations: int = 1,
-    use_ram: bool = False,
-    ram_module: Optional[str] = None,
-    ram_ref_embeddings: Optional[Path] = None,
-    ram_ref_labels: Optional[Path] = None,
-    ram_top_k: int = 5,
-    ram_temperature: float = 0.1,
-    use_rag_neighbors: bool = False,
-    rag_ref_embeddings: Optional[Path] = None,
-    rag_ref_sequences: Optional[Path] = None,
-    rag_top_k: int = 5,
-    rag_min_similarity: float = 0.5,
-) -> List[Candidate]:
-    candidates = propose_mutations(
-        parent_id=parent_id,
-        parent_seq=parent_seq,
-        candidate_sites=candidate_sites,
-        max_mutations=max_mutations,
-    )
-
-    # RAG neighbor-derived proposals
-    if use_rag_neighbors:
-        if rag_ref_embeddings is None or rag_ref_sequences is None:
-            raise ValueError("use_rag_neighbors requires rag_ref_embeddings and rag_ref_sequences")
-        ref_mat, ref_ids = load_ref_embeddings(rag_ref_embeddings)
-        ref_mat = normalize(ref_mat)
-        ref_seq_map = _load_ref_sequences(rag_ref_sequences)
-        if parent_id not in ref_seq_map or parent_id not in ref_ids:
-            raise ValueError("Parent ID must exist in reference sequences/embeddings for RAG retrieval.")
-        # Use parent embedding from reference bank
-        parent_idx = ref_ids.index(parent_id)
-        parent_emb = ref_mat[parent_idx]
-        neighbors = cosine_search(parent_emb, ref_mat, ref_ids, top_k=rag_top_k + 1)  # +1 to include parent
-        neighbors = [(nid, sim) for nid, sim in neighbors if nid != parent_id]
-        neighbors = radius_filter(neighbors, min_sim=rag_min_similarity)
-        neighbor_ids = [nid for nid, _ in neighbors]
-        neighbor_seqs = [ref_seq_map[nid] for nid in neighbor_ids if nid in ref_seq_map]
-        candidates += propose_from_neighbors(
-            parent_id=parent_id,
-            parent_seq=parent_seq,
-            neighbors=neighbor_seqs,
-            neighbor_ids=neighbor_ids,
-            max_mutations=max_mutations,
-            candidate_limit=200,
-        )
-
-    embeddings = load_embeddings(embeddings_path)
-    surrogate = SurrogateModel.load(surrogate_dir)
-    attach_surrogate_preds(surrogate, embeddings, candidates)
-
-    if use_ram:
-        if ram_module:
-            ram_fn = _load_ram_callable(ram_module)
-            seqs = [c.sequence for c in candidates]
-            scores = ram_esm_wrapper(ram_fn, seqs)
-            for c, s in zip(candidates, scores):
-                c.ram_score = s
-        elif ram_ref_embeddings and ram_ref_labels:
-            ram_fn = build_ram_scorer(
-                ref_embeddings_path=ram_ref_embeddings,
-                ref_labels_path=ram_ref_labels,
-                top_k=ram_top_k,
-                temperature=ram_temperature,
-            )
-            attach_ram_scores_from_embeddings(ram_fn, candidates, embeddings)
-        else:
-            raise ValueError("use_ram set but no ram_module or ram reference data provided.")
-
-    archive = QDArchive(max_mutations=max_mutations)
-    batch = design_batch(
-        candidates,
-        archive=archive,
-        batch_size=batch_size,
-        beta=1.0,
-        w_stability=1.0,
-        w_activity=0.0,
-        w_ram=1.0 if use_ram else 0.0,
-        activity_floor=None,
-        min_hamming=2,
-    )
-    return batch
-
-
-def _read_fasta_first(path: Path) -> tuple[str, str]:
+# --------------------------
+# Helpers
+# --------------------------
+def read_fasta_single(path: Path) -> Tuple[str, str]:
     header = None
     seq = []
     with open(path, "r") as f:
@@ -176,55 +47,195 @@ def _read_fasta_first(path: Path) -> tuple[str, str]:
     return header, "".join(seq)
 
 
+def build_constraints(
+    wt_seq: str, max_mutations: int, forbid_motif: Sequence[str]
+) -> HardConstraints:
+    # Map key catalytic/binding residues to WT amino acids (1-based indexing)
+    positions = [160, 206, 237, 87, 161, 185]
+    catalytic_positions: Dict[int, str] = {}
+    for pos in positions:
+        if pos > len(wt_seq):
+            continue
+        catalytic_positions[pos] = wt_seq[pos - 1]
+    disulfide_pairs = [(203, 239), (273, 289)]
+    return HardConstraints(
+        catalytic_positions=catalytic_positions,
+        disulfide_pairs=disulfide_pairs,
+        forbid_motif=forbid_motif,
+        max_mutations=max_mutations,
+    )
+
+
+def embed_sequences(
+    seq_ids: Sequence[str],
+    sequences: Sequence[str],
+    embeddings: Dict[str, np.ndarray],
+    embedder: str = "precomputed",
+) -> np.ndarray:
+    """
+    Return a feature matrix aligned to seq_ids. If an id is missing:
+      - with embedder='onehot', compute flattened one-hot (len*20) vectors
+      - with embedder='precomputed', raise
+    """
+    feats: List[np.ndarray] = []
+    for sid, seq in zip(seq_ids, sequences):
+        emb = embeddings.get(sid)
+        if emb is None:
+            if embedder != "onehot":
+                raise ValueError(f"Missing embedding for {sid}; provide an embedder or precompute.")
+            emb_vec = one_hot_encode(seq)
+            feats.append(emb_vec)
+        else:
+            feats.append(emb)
+
+    # ensure consistent dims
+    dims = {f.shape[0] for f in feats}
+    if len(dims) != 1:
+        raise ValueError(f"Inconsistent feature dimensions detected: {dims}")
+    return np.vstack(feats)
+
+
+def load_embeddings_npz(path: Path) -> Dict[str, np.ndarray]:
+    data = np.load(path, allow_pickle=False)
+    return {k: data[k] for k in data.files}
+
+
+# --------------------------
+# Round orchestration
+# --------------------------
+def run_round(
+    parent_fasta: Path,
+    sequence_db: Path,
+    embeddings_npz: Path,
+    surrogate_path: Path,
+    batch_size: int = 12,
+    proposals: int = 64,
+    trust_min: int = 1,
+    trust_max: int = 5,
+    forbid_motif: Sequence[str] = ("N", "X", "S", "T"),  # avoid N-X-S/T motifs
+    embedder: str = "onehot",
+    stability_bins: Sequence[float] = (-2, -1, 0, 1, 2, 4),
+) -> List:
+    wt_id, wt_seq = read_fasta_single(parent_fasta)
+    embeddings = load_embeddings_npz(embeddings_npz)
+
+    mut_model = MutationModel(
+        embedding_path=embeddings_npz,
+        sequence_db=sequence_db,
+        wt_id=wt_id,
+        trust_radius=(trust_min, trust_max),
+    )
+    proposals = mut_model.propose(k=proposals)
+
+    seq_ids = [p.seq_id for p in proposals]
+    seqs = [p.sequence for p in proposals]
+    meta_lookup = {
+        p.seq_id: {"mutations": p.mutations, "source_neighbor": p.source_neighbor}
+        for p in proposals
+    }
+
+    features = embed_sequences(seq_ids, seqs, embeddings, embedder=embedder)
+
+    surrogate = SurrogateEnsemble.load(surrogate_path)
+    mean, var = surrogate.predict(features)
+    std = np.sqrt(np.clip(var, 1e-8, None))
+
+    constraints = build_constraints(wt_seq, max_mutations=trust_max, forbid_motif=forbid_motif)
+    archive = QDArchive(max_mutations=trust_max, stability_bins=stability_bins, top_k_per_niche=1)
+    designer = BatchDesigner(
+        cfg=BatchDesignConfig(batch_size=batch_size, min_hamming=2, beta_start=2.0, beta_end=0.5),
+        constraints=constraints,
+        qd_archive=archive,
+        wt_seq=wt_seq,
+    )
+
+    stability_scores = mean[:, 0]
+    activity_scores = mean[:, 1] if mean.shape[1] > 1 else np.zeros_like(stability_scores)
+
+    selected = designer.select(
+        sequences=seqs,
+        seq_ids=seq_ids,
+        mean=mean,
+        std=std,
+        stability_scores=stability_scores,
+        activity_scores=activity_scores,
+        round_idx=0,
+        meta_lookup=meta_lookup,
+    )
+    return selected
+
+
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Run a lightweight BO+QD round.")
-    p.add_argument("--parent-fasta", type=Path, required=True, help="Parent sequence FASTA (first record used).")
-    p.add_argument("--candidate-sites", required=True, help="Comma-separated 1-based positions to consider.")
-    p.add_argument("--embeddings", type=Path, required=True, help="NPZ with embeddings keyed by candidate IDs.")
-    p.add_argument("--surrogate-dir", type=Path, required=True, help="Directory with surrogate.pkl + meta.")
-    p.add_argument("--batch-size", type=int, default=8)
-    p.add_argument("--max-mutations", type=int, default=1)
-    p.add_argument("--use-ram", action="store_true", help="Blend RAM-ESM scores if provided.")
-    p.add_argument("--ram-module", type=str, default=None, help="Python module path exposing score(List[str])->np.ndarray.")
-    p.add_argument("--ram-ref-embeddings", type=Path, default=None, help="Reference NPZ embeddings for RAM-ESM retrieval.")
-    p.add_argument("--ram-ref-labels", type=Path, default=None, help="Reference labels CSV for RAM-ESM retrieval.")
-    p.add_argument("--ram-top-k", type=int, default=5, help="Top-k neighbors for RAM scoring.")
-    p.add_argument("--ram-temperature", type=float, default=0.1, help="Softmax temperature for RAM scoring.")
-    p.add_argument("--use-rag-neighbors", action="store_true", help="Augment candidate set with RAG neighbor mutations.")
-    p.add_argument("--rag-ref-embeddings", type=Path, default=None, help="Reference embeddings NPZ for retrieval proposals (must include parent ID).")
-    p.add_argument("--rag-ref-sequences", type=Path, default=None, help="Reference sequences CSV with columns id,sequence.")
-    p.add_argument("--rag-top-k", type=int, default=5, help="Top-k neighbors for proposal retrieval.")
-    p.add_argument("--rag-min-similarity", type=float, default=0.5, help="Minimum cosine similarity for neighbor inclusion.")
+    p = argparse.ArgumentParser(description="Run mutation proposal + surrogate + QD selection.")
+    p.add_argument(
+        "--parent-fasta",
+        type=Path,
+        required=True,
+        help="FASTA with the wild-type sequence (first record used).",
+    )
+    p.add_argument(
+        "--sequence-db",
+        type=Path,
+        required=True,
+        help="CSV with columns id,sequence (must include the WT id).",
+    )
+    p.add_argument(
+        "--embeddings",
+        type=Path,
+        required=True,
+        help="NPZ with embeddings keyed by id (used for retrieval/features).",
+    )
+    p.add_argument(
+        "--surrogate", type=Path, required=True, help="Path to trained surrogate .pt file."
+    )
+    p.add_argument("--batch-size", type=int, default=12)
+    p.add_argument("--proposals", type=int, default=64)
+    p.add_argument(
+        "--trust-min",
+        type=int,
+        default=1,
+        help="Minimum mutations from retrieved neighbor (inclusive).",
+    )
+    p.add_argument(
+        "--trust-max",
+        type=int,
+        default=5,
+        help="Maximum mutations from retrieved neighbor (inclusive).",
+    )
+    p.add_argument(
+        "--embedder",
+        type=str,
+        default="onehot",
+        choices=["onehot", "precomputed"],
+        help="How to featurize sequences for the surrogate if missing in NPZ.",
+    )
+    p.add_argument(
+        "--stability-bins",
+        type=str,
+        default="-2,-1,0,1,2,4",
+        help="Comma-separated stability bin edges for QD archive.",
+    )
     return p.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    parent_id, parent_seq = _read_fasta_first(args.parent_fasta)
-    sites = [int(s.strip()) for s in args.candidate_sites.split(",") if s.strip()]
-    batch = run_round(
-        parent_id=parent_id,
-        parent_seq=parent_seq,
-        candidate_sites=sites,
-        embeddings_path=args.embeddings,
-        surrogate_dir=args.surrogate_dir,
+    bins = tuple(float(x.strip()) for x in args.stability_bins.split(",") if x.strip())
+    selected = run_round(
+        parent_fasta=args.parent_fasta,
+        sequence_db=args.sequence_db,
+        embeddings_npz=args.embeddings,
+        surrogate_path=args.surrogate,
         batch_size=args.batch_size,
-        max_mutations=args.max_mutations,
-        use_ram=args.use_ram,
-        ram_module=args.ram_module,
-        ram_ref_embeddings=args.ram_ref_embeddings,
-        ram_ref_labels=args.ram_ref_labels,
-        ram_top_k=args.ram_top_k,
-        ram_temperature=args.ram_temperature,
-        use_rag_neighbors=args.use_rag_neighbors,
-        rag_ref_embeddings=args.rag_ref_embeddings,
-        rag_ref_sequences=args.rag_ref_sequences,
-        rag_top_k=args.rag_top_k,
-        rag_min_similarity=args.rag_min_similarity,
+        proposals=args.proposals,
+        trust_min=args.trust_min,
+        trust_max=args.trust_max,
+        embedder=args.embedder,
+        stability_bins=bins,
     )
-    for cand in batch:
+    for rec in selected:
         print(
-            f"{cand.seq_id}\tmutations={cand.mutations}\tacq={cand.acquisition}\tstab={cand.pred_stab_mean}"
+            f"{rec.seq_id}\tmut_count={rec.mutation_count}\tstab_pred={rec.stability_score:.3f}\tactivity_pred={rec.activity_score:.3f}"
         )
 
 

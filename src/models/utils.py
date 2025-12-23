@@ -8,7 +8,7 @@ embeddings with a labels dataframe to produce X/y for training.
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable, Tuple, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -18,11 +18,11 @@ def align_X_y(
     embeddings: Dict[str, np.ndarray],
     labels_df: pd.DataFrame,
     id_col: str = "id",
-    y_col: str = "label",
+    y_col: Union[str, Sequence[str]] = "label",
 ) -> Tuple[np.ndarray, np.ndarray, Iterable[str]]:
     """
     Intersect IDs between embeddings and labels and return X, y in aligned order.
-    Returns (X, y, kept_ids).
+    Returns (X, y, kept_ids). Supports multiple target columns.
 
     The function preserves the order of IDs as found in ``labels_df`` and
     selects only those present in the ``embeddings`` mapping.
@@ -31,5 +31,6 @@ def align_X_y(
     if not kept_ids:
         raise ValueError("No overlapping IDs between embeddings and labels.")
     X = np.vstack([embeddings[rid] for rid in kept_ids])
-    y = labels_df.set_index(id_col).loc[kept_ids, y_col].to_numpy()
+    y_cols = [y_col] if isinstance(y_col, str) else list(y_col)
+    y = labels_df.set_index(id_col).loc[kept_ids, y_cols].to_numpy()
     return X, y, kept_ids

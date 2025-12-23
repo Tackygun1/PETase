@@ -1,22 +1,40 @@
-"""Hard mutation constraints derived from PETase structural knowledge.
-
-These are conservative: catalytic triad, oxyanion hole, aromatic clamp, and disulfide cysteines are
-protected from mutation by default.
+"""
+Structural and sequence constraints for PETase engineering.
 """
 
 from __future__ import annotations
 
-from typing import Set
+from typing import Iterable, Set
 
-# 1-based residue indices on the FAST-PETase/PETase numbering.
-CATALYTIC_TRIAD: Set[int] = {160, 206, 237}  # Ser160, Asp206, His237
-OXYANION_HOLE: Set[int] = {87, 161}  # Tyr87, Met161 backbone NH
-AROMATIC_CLAMP: Set[int] = {87, 159, 185, 241}  # Tyr87, Trp159, Trp185, Asn241 neighbors
-DISULFIDES: Set[int] = {203, 239, 273, 289}  # Cys203-Cys239, Cys273-Cys289
+PROTECTED_POSITIONS: Set[int] = {
+    160,
+    206,
+    237,  # catalytic triad
+    87,
+    161,
+    185,  # oxyanion hole / cleft aromatics
+    203,
+    239,
+    273,
+    289,  # disulfides
+}
 
-PROTECTED_SITES: Set[int] = CATALYTIC_TRIAD | OXYANION_HOLE | AROMATIC_CLAMP | DISULFIDES
+
+def is_allowed_position(pos: int, extra_protected: Iterable[int] | None = None) -> bool:
+    protected = set(PROTECTED_POSITIONS)
+    if extra_protected:
+        protected.update(extra_protected)
+    return pos not in protected
 
 
-def is_allowed_position(position: int) -> bool:
-    """Return True if the position can be mutated under hard constraints."""
-    return position not in PROTECTED_SITES
+def violates_motif(seq: str, motif: str = "NXS/T") -> bool:
+    """Detect N-X-S/T glycosylation motif."""
+    if len(seq) < 3:
+        return False
+    for i in range(len(seq) - 2):
+        if seq[i] == "N" and seq[i + 2] in ("S", "T"):
+            return True
+    return False
+
+
+__all__ = ["is_allowed_position", "violates_motif", "PROTECTED_POSITIONS"]

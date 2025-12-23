@@ -2,17 +2,25 @@ data:
   embeddings_path: data/processed/esm_embeddings.npz
   labels_path: data/processed/labels.csv
   id_col: id
-  y_col: label
+  target_cols: [stability, activity]
+  dropna: true
 
-surrogate:
-  model_type: RandomForest
-  n_estimators: 200
-  max_depth: 10
-  random_state: 42
+training:
   test_size: 0.2
+  random_state: 42
   shuffle: true
+  lr: 0.001
+  weight_decay: 0.0001
+  epochs: 50
+  batch_size: 128
+  patience: 8
+  min_delta: 0.0001
+
+model:
+  hidden_dims: [512, 256]
+  dropout: 0.1
+  ensemble_size: 5
 
 output:
   output_dir: models
-  model_filename: surrogate.pkl
-  meta_filename: surrogate_meta.json
+  model_prefix: surrogate

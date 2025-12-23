@@ -7,7 +7,7 @@ they're safe to import in CI and simple scripts.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -26,13 +26,13 @@ def load_embeddings(emb_path: Path) -> Dict[str, np.ndarray]:
     return {k: emb[k] for k in emb.files}
 
 
-def load_labels_csv(labels_path: Path, id_col: str = "id", y_col: str = "label") -> pd.DataFrame:
-    """Read a labels CSV and ensure required columns exist.
-
-    Returns a dataframe with only (id_col, y_col) columns.
-    """
+def load_labels_csv(
+    labels_path: Path, id_col: str = "id", y_col: Union[str, Sequence[str]] = "label"
+) -> pd.DataFrame:
+    """Read a labels CSV and ensure required columns exist."""
     df = pd.read_csv(labels_path)
-    missing = [c for c in (id_col, y_col) if c not in df.columns]
+    y_cols = [y_col] if isinstance(y_col, str) else list(y_col)
+    missing = [c for c in (id_col, *y_cols) if c not in df.columns]
     if missing:
         raise ValueError(f"Labels file {labels_path} missing columns: {missing}")
-    return df[[id_col, y_col]].copy()
+    return df[[id_col, *y_cols]].copy()

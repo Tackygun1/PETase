@@ -1,0 +1,21 @@
+af2:
+  binary: colabfold_batch              # path to colabfold_batch or AF2 script
+  model_preset: monomer
+  num_models: 1
+  num_recycles: 3
+  amber_relax: false
+  use_templates: false
+  output_dir: results/af2
+
+ddg:
+  rosetta_bin: /path/to/cartesian_ddg.linuxgccrelease
+  foldx_bin: /path/to/foldx
+  output_dir: results/ddg
+
+docking:
+  gnina_bin: /path/to/gnina
+  receptor_pdbqt: data/structures/petase_receptor.pdbqt
+  ligand_pdbqt: data/structures/pet_fragment.pdbqt
+  center: [0.0, 0.0, 0.0]
+  size: [20.0, 20.0, 20.0]
+  output_dir: results/docking

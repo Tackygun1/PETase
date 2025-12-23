@@ -1,17 +1,26 @@
 import random
 from typing import Dict, List, Optional, Tuple
 
+from pathlib import Path
+
 import numpy as np
 from sklearn.metrics.pairwise import cosine_distances
 
-from pathlib import Path
-
+from acquisition.batch_design import (
+    BatchDesignConfig,
+    BatchDesigner,
+    MutationModel,
+)
+from acquisition.acquisition import HardConstraints
+from acquisition.qd_archive import QDArchive as QDArchiveNew
+from models.surrogate import SurrogateEnsemble
 from petase_models import (
     AMINO_ACIDS,
     SurrogateModel,
     build_known_petase_index,
     EmbeddingCache,
     load_esm_embedder,
+    one_hot_encode,
     make_one_hot_encoder,
 )
 from petase_scoring import (
@@ -21,6 +30,12 @@ from petase_scoring import (
     score_stability,
     set_reference_sequence,
 )
+
+
+def load_embeddings_npz(path: Path) -> Dict[str, np.ndarray]:
+    """Load NPZ embeddings keyed by sequence ID."""
+    data = np.load(path, allow_pickle=False)
+    return {k: data[k] for k in data.files}
 
 
 def _maybe_get_esm_embedder(
@@ -398,6 +413,97 @@ def active_learning_round(
         "batch_stabilities": stab_batch,
         "ucb_scores": [ucb[candidates.index(s)] for s in batch],
     }
+
+
+# ==================================
+# 5. New pipeline wiring with MutationModel + BatchDesigner
+# ==================================
+
+
+def _hard_constraints_from_wt(
+    wt_seq: str,
+    max_mutations: int = 6,
+    forbid_motif: Tuple[str, ...] = ("N", "X", "S", "T"),
+) -> HardConstraints:
+    catalytic_positions = {}
+    for pos in [160, 206, 237, 87, 161, 185]:
+        if pos <= len(wt_seq):
+            catalytic_positions[pos] = wt_seq[pos - 1]
+    disulfides = [(203, 239), (273, 289)]
+    return HardConstraints(
+        catalytic_positions=catalytic_positions,
+        disulfide_pairs=disulfides,
+        forbid_motif=forbid_motif,
+        max_mutations=max_mutations,
+    )
+
+
+def round_with_mutation_model(
+    wt_id: str,
+    wt_seq: str,
+    surrogate_path: Path,
+    sequence_db: Path,
+    embeddings_npz: Path,
+    batch_size: int = 12,
+    proposals: int = 64,
+    trust_radius: Tuple[int, int] = (1, 5),
+    stability_bins: Tuple[float, ...] = (-2, -1, 0, 1, 2, 4),
+) -> List:
+    """
+    Retrieval-augmented proposals + surrogate scoring + QD batch selection.
+    """
+    mut_model = MutationModel(
+        embedding_path=embeddings_npz,
+        sequence_db=sequence_db,
+        wt_id=wt_id,
+        trust_radius=trust_radius,
+    )
+    props = mut_model.propose(k=proposals)
+    seq_ids = [p.seq_id for p in props]
+    seqs = [p.sequence for p in props]
+    meta_lookup = {
+        p.seq_id: {"mutations": p.mutations, "source_neighbor": p.source_neighbor} for p in props
+    }
+
+    # Features: use precomputed embeddings when available, else one-hot (must match surrogate training featurization).
+    emb_map = load_embeddings_npz(embeddings_npz)
+    feats = []
+    for sid, seq in zip(seq_ids, seqs):
+        emb = emb_map.get(sid)
+        if emb is None:
+            emb = one_hot_encode(seq)
+        feats.append(emb)
+    dims = {f.shape[0] for f in feats}
+    if len(dims) != 1:
+        raise ValueError(f"Inconsistent feature dimensions: {dims}")
+    X = np.vstack(feats)
+
+    surrogate = SurrogateEnsemble.load(surrogate_path)
+    mean, var = surrogate.predict(X)
+    std = np.sqrt(np.clip(var, 1e-8, None))
+
+    constraints = _hard_constraints_from_wt(wt_seq, max_mutations=trust_radius[1])
+    qd = QDArchiveNew(
+        max_mutations=trust_radius[1], stability_bins=stability_bins, top_k_per_niche=1
+    )
+    designer = BatchDesigner(
+        cfg=BatchDesignConfig(batch_size=batch_size, min_hamming=2, beta_start=2.0, beta_end=0.5),
+        constraints=constraints,
+        qd_archive=qd,
+        wt_seq=wt_seq,
+    )
+    stability_scores = mean[:, 0]
+    activity_scores = mean[:, 1] if mean.shape[1] > 1 else np.zeros_like(stability_scores)
+    return designer.select(
+        sequences=seqs,
+        seq_ids=seq_ids,
+        mean=mean,
+        std=std,
+        stability_scores=stability_scores,
+        activity_scores=activity_scores,
+        round_idx=0,
+        meta_lookup=meta_lookup,
+    )
 
 
 # ==================================

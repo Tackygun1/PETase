@@ -5,7 +5,14 @@ description = "Computational and experimental PETase enzyme research project"
 requires-python = ">=3.11"
 dependencies = [
     "ruff",
-    "pytest"
+    "pytest",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "scipy",
+    "torch",
+    "joblib",
+    "PyYAML"
 ]
 
 [tool.ruff]

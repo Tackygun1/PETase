@@ -1,4 +1,8 @@
-"""Mutation proposer that respects hard structural constraints."""
+"""Legacy mutation proposer that respects hard structural constraints.
+
+Kept for compatibility with older pipeline code; new code should prefer
+`MutationModel` + `BatchDesigner` in `src/acquisition/batch_design.py`.
+"""
 
 from __future__ import annotations
 
@@ -7,9 +11,9 @@ from typing import Iterable, List, Sequence
 
 from .acquisition import Candidate, apply_mutations
 from ..scoring.constraints import is_allowed_position
-from ..utils.io import load_labels_csv
 
-# Conservative amino acid set for single-site substitutions.
+
+# Conservative amino acid set for single-site substitutions (full alphabet).
 DEFAULT_MUT_AMINO_ACIDS = list("ACDEFGHIKLMNPQRSTVWY")
 
 # Design hotspots drawn from the PDFs (loops, Arg280 cap, known stabilizers).
@@ -36,6 +40,7 @@ DEFAULT_HOTSPOT_SITES = [
     274,
     280,
 ]
+
 
 # Helper to extract mutations from neighbor sequences.
 def mutations_from_neighbor(parent_seq: str, neighbor_seq: str) -> List[str]:
@@ -80,7 +85,7 @@ def propose_mutations(
 
     # Optional double mutants (simple combinations)
     if max_mutations >= 2:
-        for (pos1, pos2) in itertools.combinations(valid_sites, 2):
+        for pos1, pos2 in itertools.combinations(valid_sites, 2):
             orig1, orig2 = seq_chars[pos1 - 1], seq_chars[pos2 - 1]
             for aa1 in allowed_aas:
                 if aa1 == orig1:

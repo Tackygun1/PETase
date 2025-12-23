@@ -1,14 +1,13 @@
 """PETase model package.
 
-This module re-exports the primary API endpoints for training and using
-PETase surrogate models. Direct usage:
-    from petase.models import SurrogateModel, load_config
+Primary API endpoints for training and using PETase surrogate ensembles.
 """
 
-from .surrogate import SurrogateModel, SurrogateConfig, load_config
+from .surrogate import SurrogateEnsemble, SurrogateConfig, load_config, train_from_config
 
 __all__ = [
-    "SurrogateModel",
+    "SurrogateEnsemble",
     "SurrogateConfig",
     "load_config",
+    "train_from_config",
 ]

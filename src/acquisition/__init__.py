@@ -1,21 +1,28 @@
 from .acquisition import (
-    Candidate,
-    apply_mutations,
-    compute_acquisition,
-    filter_by_distance,
-    ram_esm_wrapper,
+    HardConstraints,
+    upper_confidence_bound,
+    thompson_sample,
+    composite_objective,
+    rank_candidates,
 )
-from .batch_design import design_batch
-from .proposer import propose_mutations
-from .qd_archive import QDArchive
+from .batch_design import (
+    BatchDesignConfig,
+    BatchDesigner,
+    MutationModel,
+    MutationProposal,
+)
+from .qd_archive import CandidateRecord, QDArchive
 
 __all__ = [
-    "Candidate",
-    "compute_acquisition",
-    "apply_mutations",
-    "filter_by_distance",
-    "ram_esm_wrapper",
-    "design_batch",
-    "propose_mutations",
+    "HardConstraints",
+    "upper_confidence_bound",
+    "thompson_sample",
+    "composite_objective",
+    "rank_candidates",
+    "BatchDesignConfig",
+    "BatchDesigner",
+    "MutationModel",
+    "MutationProposal",
+    "CandidateRecord",
     "QDArchive",
 ]
