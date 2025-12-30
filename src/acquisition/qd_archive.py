@@ -36,7 +36,9 @@ class QDArchive:
         s_bin = int(stability_score / self.stability_bin_width)
         return m_bin, s_bin
 
-    def maybe_insert(self, mutation_count: int, stability_score: float, score: float, payload: dict) -> None:
+    def maybe_insert(
+        self, mutation_count: int, stability_score: float, score: float, payload: dict
+    ) -> None:
         """Insert into archive if empty or better than existing entry for the niche."""
         key = self._niche(mutation_count, stability_score)
         existing = self._grid.get(key)
@@ -49,7 +51,4 @@ class QDArchive:
 
     def snapshot(self) -> Dict[str, dict]:
         """Export a JSON-serializable snapshot."""
-        return {
-            f"{k[0]}_{k[1]}": {"score": v.score, **v.payload}
-            for k, v in self._grid.items()
-        }
+        return {f"{k[0]}_{k[1]}": {"score": v.score, **v.payload} for k, v in self._grid.items()}

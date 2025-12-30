@@ -32,7 +32,9 @@ def _load_ram_callable(module_path: str) -> Callable[[List[str]], np.ndarray]:
     return scorer
 
 
-def attach_surrogate_preds(model: SurrogateModel, embeddings: dict, candidates: List[Candidate]) -> None:
+def attach_surrogate_preds(
+    model: SurrogateModel, embeddings: dict, candidates: List[Candidate]
+) -> None:
     """Mutates candidates in-place with surrogate mean/std. Missing embeddings are skipped."""
     X: List[np.ndarray] = []
     idx: List[int] = []
@@ -102,11 +104,15 @@ def run_round(
         ref_mat = normalize(ref_mat)
         ref_seq_map = _load_ref_sequences(rag_ref_sequences)
         if parent_id not in ref_seq_map or parent_id not in ref_ids:
-            raise ValueError("Parent ID must exist in reference sequences/embeddings for RAG retrieval.")
+            raise ValueError(
+                "Parent ID must exist in reference sequences/embeddings for RAG retrieval."
+            )
         # Use parent embedding from reference bank
         parent_idx = ref_ids.index(parent_id)
         parent_emb = ref_mat[parent_idx]
-        neighbors = cosine_search(parent_emb, ref_mat, ref_ids, top_k=rag_top_k + 1)  # +1 to include parent
+        neighbors = cosine_search(
+            parent_emb, ref_mat, ref_ids, top_k=rag_top_k + 1
+        )  # +1 to include parent
         neighbors = [(nid, sim) for nid, sim in neighbors if nid != parent_id]
         neighbors = radius_filter(neighbors, min_sim=rag_min_similarity)
         neighbor_ids = [nid for nid, _ in neighbors]
@@ -178,23 +184,72 @@ def _read_fasta_first(path: Path) -> tuple[str, str]:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Run a lightweight BO+QD round.")
-    p.add_argument("--parent-fasta", type=Path, required=True, help="Parent sequence FASTA (first record used).")
-    p.add_argument("--candidate-sites", required=True, help="Comma-separated 1-based positions to consider.")
-    p.add_argument("--embeddings", type=Path, required=True, help="NPZ with embeddings keyed by candidate IDs.")
-    p.add_argument("--surrogate-dir", type=Path, required=True, help="Directory with surrogate.pkl + meta.")
+    p.add_argument(
+        "--parent-fasta",
+        type=Path,
+        required=True,
+        help="Parent sequence FASTA (first record used).",
+    )
+    p.add_argument(
+        "--candidate-sites", required=True, help="Comma-separated 1-based positions to consider."
+    )
+    p.add_argument(
+        "--embeddings", type=Path, required=True, help="NPZ with embeddings keyed by candidate IDs."
+    )
+    p.add_argument(
+        "--surrogate-dir", type=Path, required=True, help="Directory with surrogate.pkl + meta."
+    )
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--max-mutations", type=int, default=1)
     p.add_argument("--use-ram", action="store_true", help="Blend RAM-ESM scores if provided.")
-    p.add_argument("--ram-module", type=str, default=None, help="Python module path exposing score(List[str])->np.ndarray.")
-    p.add_argument("--ram-ref-embeddings", type=Path, default=None, help="Reference NPZ embeddings for RAM-ESM retrieval.")
-    p.add_argument("--ram-ref-labels", type=Path, default=None, help="Reference labels CSV for RAM-ESM retrieval.")
+    p.add_argument(
+        "--ram-module",
+        type=str,
+        default=None,
+        help="Python module path exposing score(List[str])->np.ndarray.",
+    )
+    p.add_argument(
+        "--ram-ref-embeddings",
+        type=Path,
+        default=None,
+        help="Reference NPZ embeddings for RAM-ESM retrieval.",
+    )
+    p.add_argument(
+        "--ram-ref-labels",
+        type=Path,
+        default=None,
+        help="Reference labels CSV for RAM-ESM retrieval.",
+    )
     p.add_argument("--ram-top-k", type=int, default=5, help="Top-k neighbors for RAM scoring.")
-    p.add_argument("--ram-temperature", type=float, default=0.1, help="Softmax temperature for RAM scoring.")
-    p.add_argument("--use-rag-neighbors", action="store_true", help="Augment candidate set with RAG neighbor mutations.")
-    p.add_argument("--rag-ref-embeddings", type=Path, default=None, help="Reference embeddings NPZ for retrieval proposals (must include parent ID).")
-    p.add_argument("--rag-ref-sequences", type=Path, default=None, help="Reference sequences CSV with columns id,sequence.")
-    p.add_argument("--rag-top-k", type=int, default=5, help="Top-k neighbors for proposal retrieval.")
-    p.add_argument("--rag-min-similarity", type=float, default=0.5, help="Minimum cosine similarity for neighbor inclusion.")
+    p.add_argument(
+        "--ram-temperature", type=float, default=0.1, help="Softmax temperature for RAM scoring."
+    )
+    p.add_argument(
+        "--use-rag-neighbors",
+        action="store_true",
+        help="Augment candidate set with RAG neighbor mutations.",
+    )
+    p.add_argument(
+        "--rag-ref-embeddings",
+        type=Path,
+        default=None,
+        help="Reference embeddings NPZ for retrieval proposals (must include parent ID).",
+    )
+    p.add_argument(
+        "--rag-ref-sequences",
+        type=Path,
+        default=None,
+        help="Reference sequences CSV with columns id,sequence.",
+    )
+    p.add_argument(
+        "--rag-top-k", type=int, default=5, help="Top-k neighbors for proposal retrieval."
+    )
+    p.add_argument(
+        "--rag-min-similarity",
+        type=float,
+        default=0.5,
+        help="Minimum cosine similarity for neighbor inclusion.",
+    )
     return p.parse_args()
 
 

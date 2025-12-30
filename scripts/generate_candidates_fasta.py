@@ -14,9 +14,18 @@ from acquisition.proposer import propose_mutations
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Generate mutant candidates and write FASTA.")
-    p.add_argument("--parent-fasta", type=Path, required=True, help="Parent FASTA (first record used).")
-    p.add_argument("--candidate-sites", type=str, default=None, help="Comma-separated 1-based positions. Defaults to built-in hotspots.")
-    p.add_argument("--max-mutations", type=int, default=1, help="Maximum mutations per candidate (1 or 2).")
+    p.add_argument(
+        "--parent-fasta", type=Path, required=True, help="Parent FASTA (first record used)."
+    )
+    p.add_argument(
+        "--candidate-sites",
+        type=str,
+        default=None,
+        help="Comma-separated 1-based positions. Defaults to built-in hotspots.",
+    )
+    p.add_argument(
+        "--max-mutations", type=int, default=1, help="Maximum mutations per candidate (1 or 2)."
+    )
     p.add_argument("--output", type=Path, default=Path("data/processed/candidates.fasta"))
     return p.parse_args()
 
