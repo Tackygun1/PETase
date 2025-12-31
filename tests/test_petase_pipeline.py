@@ -444,9 +444,9 @@ class TestMutationConstraints:
                 # Convert 1-based to 0-based index
                 idx = frozen_pos - 1
                 if idx < len(variant) and idx < len(wt_seq):
-                    assert (
-                        variant[idx] == wt_seq[idx]
-                    ), f"Frozen position {frozen_pos} was mutated: {wt_seq[idx]} -> {variant[idx]}"
+                    assert variant[idx] == wt_seq[idx], (
+                        f"Frozen position {frozen_pos} was mutated: {wt_seq[idx]} -> {variant[idx]}"
+                    )
 
     def test_only_canonical_amino_acids(self):
         """All mutations should use only canonical amino acids."""

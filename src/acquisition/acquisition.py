@@ -94,7 +94,7 @@ def apply_mutations(parent_seq: str, mutations: List[str]) -> str:
         if pos < 1 or pos > len(seq):
             raise ValueError(f"Position out of range in {mut} for sequence length {len(seq)}")
         if seq[pos - 1] != orig:
-            raise ValueError(f"Origin mismatch at {mut}: seq has {seq[pos-1]}")
+            raise ValueError(f"Origin mismatch at {mut}: seq has {seq[pos - 1]}")
         seq[pos - 1] = dest
     return "".join(seq)
 
