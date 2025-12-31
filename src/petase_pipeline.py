@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_distances
 
 from pathlib import Path
 
-from petase_models import (
+from .petase_models import (
     AMINO_ACIDS,
     SurrogateModel,
     build_known_petase_index,
@@ -14,7 +14,7 @@ from petase_models import (
     load_esm_embedder,
     make_one_hot_encoder,
 )
-from petase_scoring import (
+from .petase_scoring import (
     get_reference_sequence,
     hamming_distance,
     mutation_list,
@@ -102,6 +102,9 @@ def propose_single_mutants_guided(
 
     if mut_list is None:
         for pos, aas in known_mutations.items():
+            # Skip if position is out of range
+            if pos < 1 or pos > len(wt_seq):
+                continue
             wt_aa = wt_seq[pos - 1]
             for aa in aas:
                 if aa != wt_aa:
@@ -109,6 +112,9 @@ def propose_single_mutants_guided(
                     variants.append(mutant)
     else:
         for pos, aa in mut_list:
+            # Skip if position is out of range
+            if pos < 1 or pos > len(wt_seq):
+                continue
             wt_aa = wt_seq[pos - 1]
             if aa != wt_aa:
                 mutant = wt_seq[: pos - 1] + aa + wt_seq[pos:]
@@ -328,15 +334,21 @@ def initial_round(
 def propose_new_candidates(base_seqs: List[str], n_candidates: int = 500) -> List[str]:
     """Mutate around current elites to propose new candidates."""
     candidates = set()
-    allowed = None  # lazily compute
+    allowed_cache: Dict[int, List[int]] = {}
 
     while len(candidates) < n_candidates:
         parent = random.choice(base_seqs)
+        parent_len = len(parent)
+        allowed = allowed_cache.get(parent_len)
         if allowed is None:
             allowed = allowed_positions(parent)
+            allowed_cache[parent_len] = allowed
+        if not allowed:
+            continue
         seq_list = list(parent)
         # choose 1–3 mutation sites
         k = random.choice([1, 2, 3])
+        k = min(k, len(allowed))
         pos_to_mutate = random.sample(allowed, k=k)
         for idx in pos_to_mutate:
             wt_aa = seq_list[idx]

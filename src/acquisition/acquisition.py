@@ -54,7 +54,9 @@ def compute_acquisition(
     """
     updated: List[Candidate] = []
     for c in candidates:
-        stab = w_stability * (ucb(np.array([c.pred_stab_mean]), np.array([c.pred_stab_std]), beta)[0])
+        stab = (
+            w_stability * (ucb(np.array([c.pred_stab_mean]), np.array([c.pred_stab_std]), beta)[0])
+        )
 
         act_term = 0.0
         if c.pred_act_mean is not None and w_activity != 0:
@@ -92,7 +94,7 @@ def apply_mutations(parent_seq: str, mutations: List[str]) -> str:
         if pos < 1 or pos > len(seq):
             raise ValueError(f"Position out of range in {mut} for sequence length {len(seq)}")
         if seq[pos - 1] != orig:
-            raise ValueError(f"Origin mismatch at {mut}: seq has {seq[pos-1]}")
+            raise ValueError(f"Origin mismatch at {mut}: seq has {seq[pos - 1]}")
         seq[pos - 1] = dest
     return "".join(seq)
 
@@ -115,7 +117,9 @@ def filter_by_distance(candidates: List[Candidate], min_hamming: int) -> List[Ca
 # -------------------------
 # RAM-ESM adapter (optional)
 # -------------------------
-def ram_esm_wrapper(ram_model: Callable[[List[str]], np.ndarray], sequences: List[str]) -> List[float]:
+def ram_esm_wrapper(
+    ram_model: Callable[[List[str]], np.ndarray], sequences: List[str]
+) -> List[float]:
     """Run an external RAM-ESM scorer on sequences. Expects a callable returning a numpy array."""
     scores = ram_model(sequences)
     return [float(s) for s in scores]
