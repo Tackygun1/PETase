@@ -16,9 +16,9 @@ build/
 .history/
 
 # Data
-data/
 *.csv
 *.tsv
 *.json
 *.pkl
 *.h5
+!data/**
