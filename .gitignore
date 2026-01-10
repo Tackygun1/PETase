@@ -16,3 +16,4 @@ build/
 .history/
 
 # Data
+*.csv
