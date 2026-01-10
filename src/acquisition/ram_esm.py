@@ -8,7 +8,7 @@ sequences by soft top-k similarity and return a prior stability score. This plug
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
@@ -26,7 +26,9 @@ def _softmax(x: np.ndarray, temperature: float) -> np.ndarray:
     return e / (np.sum(e) + 1e-8)
 
 
-def _align_ref(emb_path: Path, labels_path: Path, id_col: str, y_col: str) -> Tuple[np.ndarray, np.ndarray]:
+def _align_ref(
+    emb_path: Path, labels_path: Path, id_col: str, y_col: str
+) -> Tuple[np.ndarray, np.ndarray]:
     ref_emb = load_embeddings(emb_path)
     ref_labels_df = load_labels_csv(labels_path, id_col=id_col, y_col=y_col)
     kept_ids: List[str] = [rid for rid in ref_labels_df[id_col].tolist() if rid in ref_emb]

@@ -17,7 +17,9 @@ import numpy as np
 DEFAULT_MODEL = "esm2_t6_8M_UR50D"
 
 
-def read_sequences(input_path: Path, id_col: str = "id", seq_col: str = "sequence") -> List[Tuple[str, str]]:
+def read_sequences(
+    input_path: Path, id_col: str = "id", seq_col: str = "sequence"
+) -> List[Tuple[str, str]]:
     """Load sequences from FASTA or CSV/TSV.
 
     Returns a list of (id, sequence) tuples.
@@ -83,7 +85,6 @@ def embed_sequences(
     """Embed sequences with an ESM model and return {id: vector}."""
     # Lazy import to keep base environment slim.
     import torch
-    import esm
 
     model, alphabet = _load_model(model_name, device)
     batch_converter = alphabet.get_batch_converter()
@@ -148,7 +149,9 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_MODEL,
         help=f"ESM model name (esm.pretrained.*). Default: {DEFAULT_MODEL}",
     )
-    parser.add_argument("--layer", type=int, default=None, help="Representation layer (default: top).")
+    parser.add_argument(
+        "--layer", type=int, default=None, help="Representation layer (default: top)."
+    )
     parser.add_argument("--batch-size", type=int, default=4, help="Batch size (default: 4).")
     parser.add_argument(
         "--device",
