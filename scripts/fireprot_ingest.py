@@ -28,12 +28,13 @@ def _infer_seq_for_model(df: pd.DataFrame) -> pd.Series:
     target_col = _find_column(df, "TARGET_SEQUENCE_ID")
     seq_col = _find_column(df, "SEQUENCE_ID")
     if target_col:
-        base = df[target_col]
+        base = df[target_col].replace(r"^\s*$", pd.NA, regex=True)
         if seq_col:
-            base = base.fillna(df[seq_col])
+            fallback = df[seq_col].replace(r"^\s*$", pd.NA, regex=True)
+            base = base.fillna(fallback)
         return base
     if seq_col:
-        return df[seq_col]
+        return df[seq_col].replace(r"^\s*$", pd.NA, regex=True)
     raise SystemExit("Missing SEQUENCE_ID/TARGET_SEQUENCE_ID columns in input CSV.")
 
 
@@ -131,6 +132,7 @@ def main() -> None:
 
     df = pd.read_csv(args.input_csv)
     df["SEQ_FOR_MODEL"] = _infer_seq_for_model(df)
+    df["SEQ_FOR_MODEL"] = df["SEQ_FOR_MODEL"].replace(r"^\s*$", pd.NA, regex=True)
     df["SEQ_FOR_MODEL"] = pd.to_numeric(df["SEQ_FOR_MODEL"], errors="coerce")
     df = df.dropna(subset=["SEQ_FOR_MODEL"])
     df["SEQ_FOR_MODEL"] = df["SEQ_FOR_MODEL"].astype(int)
