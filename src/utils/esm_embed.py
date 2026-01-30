@@ -154,6 +154,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--batch-size", type=int, default=4, help="Batch size (default: 4).")
     parser.add_argument(
+        "--max-length",
+        type=int,
+        default=None,
+        help="Optional max sequence length to embed (filters longer sequences).",
+    )
+    parser.add_argument(
         "--device",
         default="cpu",
         help='Device string for torch (default: "cpu"). Use "cuda" if available.',
@@ -164,6 +170,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     sequences = read_sequences(args.input, id_col=args.id_col, seq_col=args.seq_col)
+    if args.max_length is not None:
+        sequences = [(sid, seq) for sid, seq in sequences if len(seq) <= args.max_length]
     embeddings = embed_sequences(
         sequences,
         model_name=args.model,

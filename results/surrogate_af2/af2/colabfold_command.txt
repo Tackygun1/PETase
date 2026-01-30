@@ -1,0 +1,1 @@
+/home/gofish/miniconda3/envs/colabfold/bin/colabfold_batch --model-type alphafold2 --num-models 1 --num-recycle 3 results/surrogate_af2/topk.fasta results/surrogate_af2/af2

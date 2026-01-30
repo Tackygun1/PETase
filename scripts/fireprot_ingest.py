@@ -24,18 +24,28 @@ def _find_column(df: pd.DataFrame, name: str) -> str | None:
     return None
 
 
-def _infer_seq_for_model(df: pd.DataFrame) -> pd.Series:
+def _infer_seq_for_model(df: pd.DataFrame) -> pd.DataFrame:
     target_col = _find_column(df, "TARGET_SEQUENCE_ID")
     seq_col = _find_column(df, "SEQUENCE_ID")
+    uniprot_col = _find_column(df, "UNIPROTKB")
+    base = pd.Series(pd.NA, index=df.index)
+    source = pd.Series(pd.NA, index=df.index)
     if target_col:
         base = df[target_col].replace(r"^\s*$", pd.NA, regex=True)
-        if seq_col:
-            fallback = df[seq_col].replace(r"^\s*$", pd.NA, regex=True)
-            base = base.fillna(fallback)
-        return base
+        source = source.mask(base.notna(), "fireprot")
     if seq_col:
-        return df[seq_col].replace(r"^\s*$", pd.NA, regex=True)
-    raise SystemExit("Missing SEQUENCE_ID/TARGET_SEQUENCE_ID columns in input CSV.")
+        fallback = df[seq_col].replace(r"^\s*$", pd.NA, regex=True)
+        base = base.fillna(fallback)
+        source = source.mask(fallback.notna() & source.isna(), "fireprot")
+    if uniprot_col:
+        uniprot = df[uniprot_col].replace(r"^\s*$", pd.NA, regex=True)
+        base = base.fillna(uniprot)
+        source = source.mask(uniprot.notna() & source.isna(), "uniprot")
+    if base.isna().all():
+        raise SystemExit(
+            "Missing SEQUENCE_ID/TARGET_SEQUENCE_ID/UNIPROTKB columns in input CSV."
+        )
+    return pd.DataFrame({"SEQ_FOR_MODEL": base, "SEQ_SOURCE": source})
 
 
 def fetch_sequence(
@@ -57,6 +67,42 @@ def fetch_sequence(
             last_error = str(exc)
         time.sleep(sleep * (2**attempt))
     raise RuntimeError(f"Failed to fetch sequence for id={seq_id}: {last_error}")
+
+
+def fetch_uniprot_sequence(
+    uniprot_id: str,
+    session: requests.Session,
+    base: str,
+    retries: int = 5,
+    sleep: float = 0.25,
+) -> str:
+    url = f"{base}/{uniprot_id}.fasta"
+    last_error = "unknown"
+    for attempt in range(retries):
+        try:
+            resp = session.get(url, timeout=30)
+            if resp.status_code == 200:
+                lines = [line.strip() for line in resp.text.splitlines() if line.strip()]
+                return "".join(line for line in lines if not line.startswith(">"))
+            last_error = f"status={resp.status_code} body={resp.text[:200]}"
+        except requests.RequestException as exc:
+            last_error = str(exc)
+        time.sleep(sleep * (2**attempt))
+    raise RuntimeError(f"Failed to fetch UniProt sequence for id={uniprot_id}: {last_error}")
+
+
+def _normalize_uniprot_id(raw: str) -> str | None:
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    for ch in [",", ";", "|"]:
+        text = text.replace(ch, " ")
+    parts = [p.strip() for p in text.split() if p.strip()]
+    if not parts:
+        return None
+    return parts[0]
 
 
 def _apply_label(df: pd.DataFrame, label_col: str, ddg_flip: bool) -> pd.DataFrame:
@@ -126,16 +172,33 @@ def main() -> None:
         help="Filter to a specific SEQUENCE_LENGTH before fetching sequences.",
     )
     p.add_argument("--api-base", default=DEFAULT_BASE, help="FireProtDB API base URL.")
+    p.add_argument(
+        "--uniprot-base",
+        default="https://rest.uniprot.org/uniprotkb",
+        help="UniProt REST base URL for FASTA fetches.",
+    )
     p.add_argument("--retries", type=int, default=5, help="HTTP retries per sequence.")
     p.add_argument("--sleep", type=float, default=0.25, help="Initial backoff sleep (seconds).")
+    p.add_argument(
+        "--skip-failures",
+        action="store_true",
+        help="Skip sequence fetch failures instead of aborting.",
+    )
     args = p.parse_args()
 
     df = pd.read_csv(args.input_csv)
-    df["SEQ_FOR_MODEL"] = _infer_seq_for_model(df)
+    seq_info = _infer_seq_for_model(df)
+    df["SEQ_FOR_MODEL"] = seq_info["SEQ_FOR_MODEL"]
+    df["SEQ_SOURCE"] = seq_info["SEQ_SOURCE"]
     df["SEQ_FOR_MODEL"] = df["SEQ_FOR_MODEL"].replace(r"^\s*$", pd.NA, regex=True)
-    df["SEQ_FOR_MODEL"] = pd.to_numeric(df["SEQ_FOR_MODEL"], errors="coerce")
-    df = df.dropna(subset=["SEQ_FOR_MODEL"])
-    df["SEQ_FOR_MODEL"] = df["SEQ_FOR_MODEL"].astype(int)
+    df = df.dropna(subset=["SEQ_FOR_MODEL", "SEQ_SOURCE"])
+    df["SEQ_FOR_MODEL"] = df["SEQ_FOR_MODEL"].astype(str)
+    uniprot_mask = df["SEQ_SOURCE"] == "uniprot"
+    if uniprot_mask.any():
+        df.loc[uniprot_mask, "SEQ_FOR_MODEL"] = df.loc[uniprot_mask, "SEQ_FOR_MODEL"].map(
+            _normalize_uniprot_id
+        )
+        df = df.dropna(subset=["SEQ_FOR_MODEL"])
 
     if args.sequence_length is not None:
         len_col = _find_column(df, "SEQUENCE_LENGTH")
@@ -170,19 +233,47 @@ def main() -> None:
 
     df["id"] = args.id_prefix + id_raw
 
-    seq_ids = sorted({int(x) for x in df["SEQ_FOR_MODEL"].unique()})
-    if args.max_seqs:
-        seq_ids = seq_ids[: args.max_seqs]
-
     session = requests.Session()
     session.headers.update({"User-Agent": "fireprot-seq-fetch/1.0"})
-    id_to_seq: dict[int, str] = {}
-    for idx, sid in enumerate(seq_ids, 1):
-        if idx % 100 == 0 or idx == len(seq_ids):
-            print(f"Fetched {idx}/{len(seq_ids)} sequences")
-        id_to_seq[sid] = fetch_sequence(
-            sid, session=session, base=args.api_base, retries=args.retries, sleep=args.sleep
-        )
+    fireprot_raw = df.loc[df["SEQ_SOURCE"] == "fireprot", "SEQ_FOR_MODEL"]
+    fireprot_ids = pd.to_numeric(fireprot_raw, errors="coerce").dropna().astype(int).unique()
+    fireprot_ids = sorted(set(fireprot_ids))
+    uniprot_ids = sorted(
+        {x for x in df.loc[df["SEQ_SOURCE"] == "uniprot", "SEQ_FOR_MODEL"].unique()}
+    )
+    if args.max_seqs:
+        fireprot_ids = fireprot_ids[: args.max_seqs]
+        uniprot_ids = uniprot_ids[: args.max_seqs]
+
+    id_to_seq: dict[str, str] = {}
+    total = len(fireprot_ids) + len(uniprot_ids)
+    done = 0
+    for sid in fireprot_ids:
+        done += 1
+        if done % 100 == 0 or done == total:
+            print(f"Fetched {done}/{total} sequences")
+        try:
+            id_to_seq[str(sid)] = fetch_sequence(
+                sid, session=session, base=args.api_base, retries=args.retries, sleep=args.sleep
+            )
+        except Exception as exc:
+            if args.skip_failures:
+                print(f"Warning: failed to fetch FireProt id={sid}: {exc}")
+                continue
+            raise
+    for uid in uniprot_ids:
+        done += 1
+        if done % 100 == 0 or done == total:
+            print(f"Fetched {done}/{total} sequences")
+        try:
+            id_to_seq[uid] = fetch_uniprot_sequence(
+                uid, session=session, base=args.uniprot_base, retries=args.retries, sleep=args.sleep
+            )
+        except Exception as exc:
+            if args.skip_failures:
+                print(f"Warning: failed to fetch UniProt id={uid}: {exc}")
+                continue
+            raise
 
     df["sequence"] = df["SEQ_FOR_MODEL"].map(id_to_seq)
     df = df.dropna(subset=["sequence"])

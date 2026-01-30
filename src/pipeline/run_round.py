@@ -48,7 +48,10 @@ def read_fasta_single(path: Path) -> Tuple[str, str]:
 
 
 def build_constraints(
-    wt_seq: str, max_mutations: int, forbid_motif: Sequence[str]
+    wt_seq: str,
+    max_mutations: int,
+    forbid_motif: Sequence[str],
+    extra_protected: Sequence[int] | None = None,
 ) -> HardConstraints:
     # Map key catalytic/binding residues to WT amino acids (1-based indexing)
     positions = [160, 206, 237, 87, 161, 185]
@@ -57,6 +60,11 @@ def build_constraints(
         if pos > len(wt_seq):
             continue
         catalytic_positions[pos] = wt_seq[pos - 1]
+    if extra_protected:
+        for pos in extra_protected:
+            if pos > len(wt_seq):
+                continue
+            catalytic_positions[pos] = wt_seq[pos - 1]
     disulfide_pairs = [(203, 239), (273, 289)]
     return HardConstraints(
         catalytic_positions=catalytic_positions,
@@ -100,6 +108,30 @@ def load_embeddings_npz(path: Path) -> Dict[str, np.ndarray]:
     return {k: data[k] for k in data.files}
 
 
+def predict_xgb(model_path: Path, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    import xgboost as xgb
+
+    model = xgb.XGBRegressor()
+    model.load_model(model_path)
+    mean = model.predict(X)
+    booster = model.get_booster()
+    if booster is None:
+        std = np.zeros_like(mean)
+    else:
+        dmat = xgb.DMatrix(X)
+        n_trees = getattr(model, "n_estimators", None) or booster.num_boosted_rounds()
+        tree_preds = []
+        for i in range(int(n_trees)):
+            preds = booster.predict(dmat, iteration_range=(i, i + 1))
+            tree_preds.append(preds)
+        if tree_preds:
+            all_preds = np.stack(tree_preds, axis=1)
+            std = all_preds.std(axis=1)
+        else:
+            std = np.zeros_like(mean)
+    return mean.reshape(-1, 1), std.reshape(-1, 1)
+
+
 # --------------------------
 # Round orchestration
 # --------------------------
@@ -107,7 +139,8 @@ def run_round(
     parent_fasta: Path,
     sequence_db: Path,
     embeddings_npz: Path,
-    surrogate_path: Path,
+    surrogate_path: Path | None,
+    surrogate_xgb_path: Path | None = None,
     batch_size: int = 12,
     proposals: int = 64,
     trust_min: int = 1,
@@ -115,6 +148,10 @@ def run_round(
     forbid_motif: Sequence[str] = ("N", "X", "S", "T"),  # avoid N-X-S/T motifs
     embedder: str = "onehot",
     stability_bins: Sequence[float] = (-2, -1, 0, 1, 2, 4),
+    extra_protected: Sequence[int] | None = None,
+    proposals_per_neighbor: int = 1,
+    proposal_mode: str = "neighbor",
+    seed: int | None = None,
 ) -> List:
     wt_id, wt_seq = read_fasta_single(parent_fasta)
     embeddings = load_embeddings_npz(embeddings_npz)
@@ -124,8 +161,14 @@ def run_round(
         sequence_db=sequence_db,
         wt_id=wt_id,
         trust_radius=(trust_min, trust_max),
+        extra_protected=extra_protected,
     )
-    proposals = mut_model.propose(k=proposals)
+    proposals = mut_model.propose(
+        k=proposals,
+        proposals_per_neighbor=proposals_per_neighbor,
+        proposal_mode=proposal_mode,
+        seed=seed,
+    )
 
     seq_ids = [p.seq_id for p in proposals]
     seqs = [p.sequence for p in proposals]
@@ -136,11 +179,20 @@ def run_round(
 
     features = embed_sequences(seq_ids, seqs, embeddings, embedder=embedder)
 
-    surrogate = SurrogateEnsemble.load(surrogate_path)
-    mean, var = surrogate.predict(features)
-    std = np.sqrt(np.clip(var, 1e-8, None))
+    if surrogate_xgb_path:
+        if embedder != "precomputed":
+            raise ValueError("XGBoost surrogate requires precomputed embeddings.")
+        mean, std = predict_xgb(surrogate_xgb_path, features)
+    else:
+        if surrogate_path is None:
+            raise ValueError("Provide --surrogate or --surrogate-xgb.")
+        surrogate = SurrogateEnsemble.load(surrogate_path)
+        mean, var = surrogate.predict(features)
+        std = np.sqrt(np.clip(var, 1e-8, None))
 
-    constraints = build_constraints(wt_seq, max_mutations=trust_max, forbid_motif=forbid_motif)
+    constraints = build_constraints(
+        wt_seq, max_mutations=trust_max, forbid_motif=forbid_motif, extra_protected=extra_protected
+    )
     archive = QDArchive(max_mutations=trust_max, stability_bins=stability_bins, top_k_per_niche=1)
     designer = BatchDesigner(
         cfg=BatchDesignConfig(batch_size=batch_size, min_hamming=2, beta_start=2.0, beta_end=0.5),
@@ -186,10 +238,32 @@ def parse_args() -> argparse.Namespace:
         help="NPZ with embeddings keyed by id (used for retrieval/features).",
     )
     p.add_argument(
-        "--surrogate", type=Path, required=True, help="Path to trained surrogate .pt file."
+        "--surrogate",
+        type=Path,
+        default=None,
+        help="Path to trained surrogate .pt file.",
+    )
+    p.add_argument(
+        "--surrogate-xgb",
+        type=Path,
+        default=None,
+        help="Path to trained XGBoost surrogate .json.",
     )
     p.add_argument("--batch-size", type=int, default=12)
     p.add_argument("--proposals", type=int, default=64)
+    p.add_argument(
+        "--proposals-per-neighbor",
+        type=int,
+        default=1,
+        help="How many variants to sample per neighbor (retrieval mode).",
+    )
+    p.add_argument(
+        "--proposal-mode",
+        choices=["neighbor", "pool"],
+        default="neighbor",
+        help="Retrieval proposal strategy (default: neighbor).",
+    )
+    p.add_argument("--seed", type=int, default=None, help="Random seed for proposal sampling.")
     p.add_argument(
         "--trust-min",
         type=int,
@@ -210,6 +284,12 @@ def parse_args() -> argparse.Namespace:
         help="How to featurize sequences for the surrogate if missing in NPZ.",
     )
     p.add_argument(
+        "--extra-protected",
+        type=str,
+        default=None,
+        help="Comma-separated 1-based positions to protect from mutation.",
+    )
+    p.add_argument(
         "--stability-bins",
         type=str,
         default="-2,-1,0,1,2,4",
@@ -221,17 +301,27 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     bins = tuple(float(x.strip()) for x in args.stability_bins.split(",") if x.strip())
+    extra_protected = None
+    if args.extra_protected:
+        extra_protected = [int(s.strip()) for s in args.extra_protected.split(",") if s.strip()]
+    if args.surrogate is None and args.surrogate_xgb is None:
+        raise SystemExit("Provide --surrogate or --surrogate-xgb.")
     selected = run_round(
         parent_fasta=args.parent_fasta,
         sequence_db=args.sequence_db,
         embeddings_npz=args.embeddings,
         surrogate_path=args.surrogate,
+        surrogate_xgb_path=args.surrogate_xgb,
         batch_size=args.batch_size,
         proposals=args.proposals,
         trust_min=args.trust_min,
         trust_max=args.trust_max,
         embedder=args.embedder,
         stability_bins=bins,
+        extra_protected=extra_protected,
+        proposals_per_neighbor=args.proposals_per_neighbor,
+        seed=args.seed,
+        proposal_mode=args.proposal_mode,
     )
     for rec in selected:
         print(

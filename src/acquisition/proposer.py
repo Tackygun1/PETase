@@ -61,6 +61,7 @@ def propose_mutations(
     candidate_sites: Iterable[int] | None = None,
     max_mutations: int = 1,
     allowed_aas: Sequence[str] = DEFAULT_MUT_AMINO_ACIDS,
+    extra_protected: Iterable[int] | None = None,
 ) -> List[Candidate]:
     """Generate candidate mutations, filtering out protected sites.
 
@@ -71,7 +72,7 @@ def propose_mutations(
     seq_chars = list(parent_seq)
     if candidate_sites is None:
         candidate_sites = DEFAULT_HOTSPOT_SITES
-    valid_sites = [s for s in candidate_sites if is_allowed_position(s)]
+    valid_sites = [s for s in candidate_sites if is_allowed_position(s, extra_protected)]
 
     mutations: List[List[str]] = []
 
@@ -124,6 +125,7 @@ def propose_from_neighbors(
     neighbor_ids: List[str],
     max_mutations: int = 2,
     candidate_limit: int = 100,
+    extra_protected: Iterable[int] | None = None,
 ) -> List[Candidate]:
     """Generate candidates by harvesting mutations present in retrieved neighbor sequences."""
     parent_seq = parent_seq.strip().upper()
@@ -131,7 +133,7 @@ def propose_from_neighbors(
     for nid, nseq in zip(neighbor_ids, neighbors):
         muts = mutations_from_neighbor(parent_seq, nseq.upper())
         # Filter out protected sites
-        muts = [m for m in muts if is_allowed_position(int(m[1:-1]))]
+        muts = [m for m in muts if is_allowed_position(int(m[1:-1]), extra_protected)]
         if not muts:
             continue
         # Limit to max_mutations simple subsets

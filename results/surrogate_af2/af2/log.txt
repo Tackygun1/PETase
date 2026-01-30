@@ -1,0 +1,461 @@
+2026-01-11 18:32:58,794 Running colabfold 1.5.5
+2026-01-11 18:32:58,941 Unable to initialize backend 'rocm': NOT_FOUND: Could not find registered platform with name: "rocm". Available platform names are: CUDA
+2026-01-11 18:32:58,941 Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+2026-01-11 18:32:59,952 Running on GPU
+2026-01-11 18:33:00,027 Found 5 citations for tools or databases
+2026-01-11 18:33:00,027 Query 1/20: IsPETaseWT_pool_1280 (length 290)
+2026-01-11 18:33:00,825 Sleeping for 7s. Reason: PENDING
+2026-01-11 18:33:08,792 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:33:16,471 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:33:24,256 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:33:31,932 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:33:41,558 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:33:51,190 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:33:58,865 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:34:04,604 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:34:10,435 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:34:21,193 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:34:27,023 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:34:34,827 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:34:41,872 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:34:50,575 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:35:30,053 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.1
+2026-01-11 18:35:33,943 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.1 tol=0.858
+2026-01-11 18:35:37,838 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.571
+2026-01-11 18:35:41,734 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=0.968
+2026-01-11 18:35:41,735 alphafold2_model_1_seed_000 took 33.1s (3 recycles)
+2026-01-11 18:35:41,749 reranking models by 'plddt' metric
+2026-01-11 18:35:41,749 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 18:35:41,928 Query 2/20: IsPETaseWT_pool_429 (length 290)
+2026-01-11 18:35:42,598 Sleeping for 8s. Reason: PENDING
+2026-01-11 18:35:51,401 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:36:00,999 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:36:10,754 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:36:17,411 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:36:28,128 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:36:38,914 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:36:48,648 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:36:54,581 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:37:03,393 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:37:14,040 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:37:19,978 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:37:26,632 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:37:33,390 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:37:42,197 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:37:58,396 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.1
+2026-01-11 18:38:02,272 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.1 tol=1.55
+2026-01-11 18:38:06,151 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.662
+2026-01-11 18:38:10,041 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.3 tol=0.885
+2026-01-11 18:38:10,041 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:38:10,055 reranking models by 'plddt' metric
+2026-01-11 18:38:10,055 rank_001_alphafold2_model_1_seed_000 pLDDT=93.3
+2026-01-11 18:38:10,134 Query 3/20: IsPETaseWT_pool_88 (length 290)
+2026-01-11 18:38:10,971 Sleeping for 5s. Reason: PENDING
+2026-01-11 18:38:16,602 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:38:25,211 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:38:32,890 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:38:43,744 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:38:49,475 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:38:58,190 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:39:05,051 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:39:11,080 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:39:20,910 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:39:30,744 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:39:39,547 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:39:45,179 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:39:54,907 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:40:01,573 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:40:07,914 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:40:22,102 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.9
+2026-01-11 18:40:25,982 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.9 tol=1.01
+2026-01-11 18:40:29,859 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.733
+2026-01-11 18:40:33,750 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.3 tol=0.655
+2026-01-11 18:40:33,750 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:40:33,763 reranking models by 'plddt' metric
+2026-01-11 18:40:33,763 rank_001_alphafold2_model_1_seed_000 pLDDT=93.3
+2026-01-11 18:40:33,843 Query 4/20: IsPETaseWT_pool_703 (length 290)
+2026-01-11 18:40:34,543 Sleeping for 10s. Reason: PENDING
+2026-01-11 18:40:45,185 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:40:54,914 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:41:00,750 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:41:08,485 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:41:18,159 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:41:26,868 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:41:34,544 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:41:40,175 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:41:49,902 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:41:58,709 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:42:07,516 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:42:15,193 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:42:25,948 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:42:34,649 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:42:52,599 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.9
+2026-01-11 18:42:56,481 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.8 tol=0.895
+2026-01-11 18:43:00,361 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.711
+2026-01-11 18:43:04,243 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=0.966
+2026-01-11 18:43:04,244 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:43:04,257 reranking models by 'plddt' metric
+2026-01-11 18:43:04,257 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 18:43:04,335 Query 5/20: IsPETaseWT_pool_514 (length 290)
+2026-01-11 18:43:05,181 Sleeping for 8s. Reason: PENDING
+2026-01-11 18:43:13,892 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:43:24,518 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:43:33,324 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:43:42,028 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:43:48,684 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:43:56,471 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:44:04,255 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:44:10,086 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:44:18,790 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:44:24,528 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:44:34,161 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:44:43,775 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:44:49,510 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:44:56,288 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:45:10,153 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.2
+2026-01-11 18:45:14,037 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.1 tol=1.13
+2026-01-11 18:45:17,917 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=1.37
+2026-01-11 18:45:21,798 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.4 tol=0.644
+2026-01-11 18:45:21,798 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:45:21,812 reranking models by 'plddt' metric
+2026-01-11 18:45:21,812 rank_001_alphafold2_model_1_seed_000 pLDDT=93.4
+2026-01-11 18:45:21,890 Query 6/20: IsPETaseWT_pool_3720 (length 290)
+2026-01-11 18:45:22,693 Sleeping for 5s. Reason: PENDING
+2026-01-11 18:45:28,319 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:45:34,054 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:45:44,732 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:45:51,462 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:45:59,459 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:46:05,286 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:46:13,082 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:46:18,708 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:46:29,349 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:46:38,157 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:46:43,789 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:46:51,673 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:46:58,431 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:47:08,057 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:47:14,815 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:47:29,210 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.1
+2026-01-11 18:47:33,073 alphafold2_model_1_seed_000 recycle=1 pLDDT=93 tol=0.921
+2026-01-11 18:47:36,939 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.929
+2026-01-11 18:47:40,812 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=0.724
+2026-01-11 18:47:40,812 alphafold2_model_1_seed_000 took 15.5s (3 recycles)
+2026-01-11 18:47:40,825 reranking models by 'plddt' metric
+2026-01-11 18:47:40,825 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 18:47:40,902 Query 7/20: IsPETaseWT_pool_3568 (length 290)
+2026-01-11 18:47:41,747 Sleeping for 9s. Reason: PENDING
+2026-01-11 18:47:51,679 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:48:01,407 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:48:08,165 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:48:17,996 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:48:26,703 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:48:32,340 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:48:40,237 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:48:48,209 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:48:57,012 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:49:05,817 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:49:15,544 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:49:23,340 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:49:31,120 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:49:45,190 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.7
+2026-01-11 18:49:49,071 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.8 tol=1.46
+2026-01-11 18:49:52,955 alphafold2_model_1_seed_000 recycle=2 pLDDT=92.7 tol=0.797
+2026-01-11 18:49:56,841 alphafold2_model_1_seed_000 recycle=3 pLDDT=93 tol=0.907
+2026-01-11 18:49:56,841 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:49:56,855 reranking models by 'plddt' metric
+2026-01-11 18:49:56,855 rank_001_alphafold2_model_1_seed_000 pLDDT=93
+2026-01-11 18:49:56,935 Query 8/20: IsPETaseWT_pool_3505 (length 290)
+2026-01-11 18:49:57,538 Sleeping for 9s. Reason: PENDING
+2026-01-11 18:50:07,277 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:50:15,973 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:50:23,743 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:50:31,432 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:50:41,163 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:50:51,084 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:50:57,749 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:51:03,577 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:51:13,202 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:51:20,995 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:51:29,694 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:51:35,321 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:51:42,079 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:51:52,845 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:52:09,826 alphafold2_model_1_seed_000 recycle=0 pLDDT=92
+2026-01-11 18:52:13,704 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.2 tol=0.646
+2026-01-11 18:52:17,584 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.602
+2026-01-11 18:52:21,469 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.1 tol=0.396
+2026-01-11 18:52:21,470 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:52:21,483 reranking models by 'plddt' metric
+2026-01-11 18:52:21,483 rank_001_alphafold2_model_1_seed_000 pLDDT=93.1
+2026-01-11 18:52:21,562 Query 9/20: IsPETaseWT_pool_4808 (length 290)
+2026-01-11 18:52:22,232 Sleeping for 7s. Reason: PENDING
+2026-01-11 18:52:30,207 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:52:37,899 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:52:44,562 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:52:54,374 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:53:04,204 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:53:10,072 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:53:16,722 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:53:27,448 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:53:33,081 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:53:38,716 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:53:45,380 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:53:56,018 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:54:01,651 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:54:07,284 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:54:14,040 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:54:29,996 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.2
+2026-01-11 18:54:33,872 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.8 tol=1.79
+2026-01-11 18:54:37,754 alphafold2_model_1_seed_000 recycle=2 pLDDT=92.8 tol=0.983
+2026-01-11 18:54:41,643 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.1 tol=0.701
+2026-01-11 18:54:41,643 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:54:41,656 reranking models by 'plddt' metric
+2026-01-11 18:54:41,656 rank_001_alphafold2_model_1_seed_000 pLDDT=93.1
+2026-01-11 18:54:41,735 Query 10/20: IsPETaseWT_pool_4781 (length 290)
+2026-01-11 18:54:42,507 Sleeping for 8s. Reason: PENDING
+2026-01-11 18:54:51,211 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:54:58,995 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:55:06,782 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:55:17,529 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:55:26,335 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:55:34,118 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:55:43,745 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:55:51,506 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:55:58,286 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:56:09,036 Sleeping for 10s. Reason: RUNNING
+2026-01-11 18:56:19,788 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:56:29,618 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:56:38,322 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:56:52,413 alphafold2_model_1_seed_000 recycle=0 pLDDT=92
+2026-01-11 18:56:56,287 alphafold2_model_1_seed_000 recycle=1 pLDDT=93 tol=0.552
+2026-01-11 18:57:00,167 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.508
+2026-01-11 18:57:04,053 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.3 tol=0.629
+2026-01-11 18:57:04,053 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:57:04,066 reranking models by 'plddt' metric
+2026-01-11 18:57:04,066 rank_001_alphafold2_model_1_seed_000 pLDDT=93.3
+2026-01-11 18:57:04,145 Query 11/20: IsPETaseWT_pool_4338 (length 290)
+2026-01-11 18:57:04,753 Sleeping for 7s. Reason: PENDING
+2026-01-11 18:57:12,522 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:57:19,177 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:57:28,786 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:57:35,458 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:57:43,264 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:57:49,006 Sleeping for 9s. Reason: RUNNING
+2026-01-11 18:57:58,806 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:58:05,484 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:58:13,139 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:58:18,776 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:58:24,412 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:58:33,110 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:58:40,785 Sleeping for 5s. Reason: RUNNING
+2026-01-11 18:58:46,536 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:58:53,283 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:58:59,933 Sleeping for 8s. Reason: RUNNING
+2026-01-11 18:59:16,194 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.9
+2026-01-11 18:59:20,074 alphafold2_model_1_seed_000 recycle=1 pLDDT=93 tol=1.19
+2026-01-11 18:59:23,957 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.676
+2026-01-11 18:59:27,841 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.3 tol=0.707
+2026-01-11 18:59:27,842 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 18:59:27,856 reranking models by 'plddt' metric
+2026-01-11 18:59:27,856 rank_001_alphafold2_model_1_seed_000 pLDDT=93.3
+2026-01-11 18:59:27,935 Query 12/20: IsPETaseWT_pool_1296 (length 290)
+2026-01-11 18:59:28,607 Sleeping for 8s. Reason: PENDING
+2026-01-11 18:59:37,311 Sleeping for 6s. Reason: RUNNING
+2026-01-11 18:59:43,963 Sleeping for 7s. Reason: RUNNING
+2026-01-11 18:59:51,626 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:00:00,252 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:00:09,152 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:00:16,837 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:00:24,512 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:00:31,372 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:00:39,160 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:00:49,802 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:00:58,506 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:01:05,162 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:01:15,914 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:01:31,969 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.2
+2026-01-11 19:01:35,837 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.1 tol=1.35
+2026-01-11 19:01:39,701 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.814
+2026-01-11 19:01:43,574 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=0.546
+2026-01-11 19:01:43,575 alphafold2_model_1_seed_000 took 15.5s (3 recycles)
+2026-01-11 19:01:43,588 reranking models by 'plddt' metric
+2026-01-11 19:01:43,588 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 19:01:43,667 Query 13/20: IsPETaseWT_pool_3882 (length 290)
+2026-01-11 19:01:44,380 Sleeping for 9s. Reason: PENDING
+2026-01-11 19:01:54,107 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:02:03,938 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:02:14,613 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:02:23,292 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:02:33,027 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:02:42,756 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:02:48,480 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:02:57,185 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:03:05,893 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:03:14,591 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:03:25,240 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:03:31,080 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:03:47,235 alphafold2_model_1_seed_000 recycle=0 pLDDT=92
+2026-01-11 19:03:51,113 alphafold2_model_1_seed_000 recycle=1 pLDDT=93 tol=0.882
+2026-01-11 19:03:54,997 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.631
+2026-01-11 19:03:58,883 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=0.717
+2026-01-11 19:03:58,883 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 19:03:58,896 reranking models by 'plddt' metric
+2026-01-11 19:03:58,896 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 19:03:58,975 Query 14/20: IsPETaseWT_pool_3849 (length 290)
+2026-01-11 19:03:59,749 Sleeping for 8s. Reason: PENDING
+2026-01-11 19:04:08,451 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:04:16,234 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:04:25,962 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:04:33,846 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:04:40,503 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:04:48,193 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:04:54,840 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:05:01,596 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:05:08,354 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:05:19,311 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:05:26,991 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:05:35,707 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:05:41,438 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:05:50,234 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:06:06,825 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.1
+2026-01-11 19:06:10,705 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.8 tol=0.754
+2026-01-11 19:06:14,584 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=1.22
+2026-01-11 19:06:18,467 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=1.17
+2026-01-11 19:06:18,467 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 19:06:18,480 reranking models by 'plddt' metric
+2026-01-11 19:06:18,480 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 19:06:18,562 Query 15/20: IsPETaseWT_pool_4951 (length 290)
+2026-01-11 19:06:19,315 Sleeping for 5s. Reason: PENDING
+2026-01-11 19:06:25,049 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:06:30,684 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:06:38,463 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:06:47,289 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:06:55,974 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:07:03,653 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:07:12,362 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:07:19,217 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:07:29,969 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:07:36,625 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:07:42,257 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:07:49,120 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:07:55,875 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:08:01,712 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:08:12,568 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:08:25,299 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.6
+2026-01-11 19:08:29,182 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.9 tol=0.736
+2026-01-11 19:08:33,065 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.707
+2026-01-11 19:08:36,948 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=1.35
+2026-01-11 19:08:36,948 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 19:08:36,962 reranking models by 'plddt' metric
+2026-01-11 19:08:36,962 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 19:08:37,042 Query 16/20: IsPETaseWT_pool_3497 (length 290)
+2026-01-11 19:08:37,875 Sleeping for 8s. Reason: PENDING
+2026-01-11 19:08:46,563 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:08:53,321 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:09:01,001 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:09:06,639 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:09:15,439 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:09:21,174 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:09:27,011 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:09:35,816 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:09:42,473 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:09:52,200 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:10:02,952 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:10:11,595 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:10:21,356 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:10:38,143 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.1
+2026-01-11 19:10:42,023 alphafold2_model_1_seed_000 recycle=1 pLDDT=93 tol=1.46
+2026-01-11 19:10:45,901 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.857
+2026-01-11 19:10:49,787 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.2 tol=0.476
+2026-01-11 19:10:49,787 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 19:10:49,801 reranking models by 'plddt' metric
+2026-01-11 19:10:49,801 rank_001_alphafold2_model_1_seed_000 pLDDT=93.2
+2026-01-11 19:10:49,880 Query 17/20: IsPETaseWT_pool_4963 (length 290)
+2026-01-11 19:10:50,669 Sleeping for 10s. Reason: PENDING
+2026-01-11 19:11:01,524 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:11:11,165 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:11:16,899 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:11:25,593 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:11:32,245 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:11:42,995 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:11:52,723 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:12:02,581 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:12:13,210 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:12:22,009 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:12:31,640 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:12:41,324 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:12:56,708 alphafold2_model_1_seed_000 recycle=0 pLDDT=92.1
+2026-01-11 19:13:00,594 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.1 tol=1.14
+2026-01-11 19:13:04,462 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.2 tol=0.575
+2026-01-11 19:13:08,333 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.4 tol=0.465
+2026-01-11 19:13:08,333 alphafold2_model_1_seed_000 took 15.6s (3 recycles)
+2026-01-11 19:13:08,347 reranking models by 'plddt' metric
+2026-01-11 19:13:08,347 rank_001_alphafold2_model_1_seed_000 pLDDT=93.4
+2026-01-11 19:13:08,427 Query 18/20: IsPETaseWT_pool_3100 (length 290)
+2026-01-11 19:13:09,111 Sleeping for 8s. Reason: PENDING
+2026-01-11 19:13:18,020 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:13:25,706 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:13:36,452 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:13:47,186 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:13:54,884 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:14:05,533 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:14:14,243 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:14:20,893 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:14:30,519 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:14:36,253 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:14:47,005 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:14:56,835 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:15:12,071 alphafold2_model_1_seed_000 recycle=0 pLDDT=92
+2026-01-11 19:15:15,936 alphafold2_model_1_seed_000 recycle=1 pLDDT=93 tol=0.86
+2026-01-11 19:15:19,803 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.975
+2026-01-11 19:15:23,674 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.3 tol=1.2
+2026-01-11 19:15:23,675 alphafold2_model_1_seed_000 took 15.5s (3 recycles)
+2026-01-11 19:15:23,689 reranking models by 'plddt' metric
+2026-01-11 19:15:23,689 rank_001_alphafold2_model_1_seed_000 pLDDT=93.3
+2026-01-11 19:15:23,768 Query 19/20: IsPETaseWT_pool_4680 (length 290)
+2026-01-11 19:15:24,482 Sleeping for 10s. Reason: PENDING
+2026-01-11 19:15:35,234 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:15:40,969 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:15:49,673 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:15:57,455 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:16:06,267 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:16:11,898 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:16:20,597 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:16:27,356 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:16:36,059 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:16:42,829 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:16:51,541 Sleeping for 6s. Reason: RUNNING
+2026-01-11 19:16:58,198 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:17:05,960 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:17:21,501 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.8
+2026-01-11 19:17:25,367 alphafold2_model_1_seed_000 recycle=1 pLDDT=92.8 tol=0.788
+2026-01-11 19:17:29,233 alphafold2_model_1_seed_000 recycle=2 pLDDT=92.8 tol=0.539
+2026-01-11 19:17:33,106 alphafold2_model_1_seed_000 recycle=3 pLDDT=93 tol=0.95
+2026-01-11 19:17:33,107 alphafold2_model_1_seed_000 took 15.5s (3 recycles)
+2026-01-11 19:17:33,123 reranking models by 'plddt' metric
+2026-01-11 19:17:33,123 rank_001_alphafold2_model_1_seed_000 pLDDT=93
+2026-01-11 19:17:33,207 Query 20/20: IsPETaseWT_pool_1559 (length 290)
+2026-01-11 19:17:34,017 Sleeping for 6s. Reason: PENDING
+2026-01-11 19:17:40,794 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:17:46,509 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:17:57,168 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:18:04,846 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:18:10,471 Sleeping for 7s. Reason: RUNNING
+2026-01-11 19:18:18,154 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:18:23,792 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:18:33,516 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:18:44,161 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:18:52,875 Sleeping for 9s. Reason: RUNNING
+2026-01-11 19:19:02,609 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:19:11,404 Sleeping for 8s. Reason: RUNNING
+2026-01-11 19:19:20,102 Sleeping for 5s. Reason: RUNNING
+2026-01-11 19:19:25,734 Sleeping for 10s. Reason: RUNNING
+2026-01-11 19:19:43,566 alphafold2_model_1_seed_000 recycle=0 pLDDT=91.9
+2026-01-11 19:19:47,429 alphafold2_model_1_seed_000 recycle=1 pLDDT=93.1 tol=0.658
+2026-01-11 19:19:51,299 alphafold2_model_1_seed_000 recycle=2 pLDDT=93.1 tol=0.543
+2026-01-11 19:19:55,171 alphafold2_model_1_seed_000 recycle=3 pLDDT=93.4 tol=1.01
+2026-01-11 19:19:55,171 alphafold2_model_1_seed_000 took 15.5s (3 recycles)
+2026-01-11 19:19:55,186 reranking models by 'plddt' metric
+2026-01-11 19:19:55,186 rank_001_alphafold2_model_1_seed_000 pLDDT=93.4
+2026-01-11 19:19:55,265 Done

@@ -8,6 +8,7 @@ It does not execute on macOS; we only compose CLI commands and parse outputs.
 from __future__ import annotations
 
 import json
+import shlex
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -30,26 +31,26 @@ def run_colabfold(
     Returns the output directory path. Does not run on macOS in this session.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
+    binary_cmd = shlex.split(binary)
     cmd = [
-        binary,
+        *binary_cmd,
         "--model-type",
         model_preset,
         "--num-models",
         str(num_models),
-        "--num-recycles",
+        "--num-recycle",
         str(num_recycles),
-        "--output-dir",
-        str(out_dir),
     ]
     if use_templates:
         cmd.append("--templates")
-    if not amber_relax:
-        cmd.extend(["--amber", "off"])
+    if amber_relax:
+        cmd.append("--amber")
     if extra_args:
         cmd.extend(extra_args)
     cmd.append(str(fasta_path))
+    cmd.append(str(out_dir))
     # Do not run here; user runs on Linux/GPU. Provide command for later execution.
-    (out_dir / "colabfold_command.txt").write_text(" ".join(cmd))
+    (out_dir / "colabfold_command.txt").write_text(shlex.join(cmd))
     return out_dir
 
 
