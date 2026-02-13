@@ -1,0 +1,10 @@
+test,statistic,value
+prediction_mean_diff,obs,6.1216
+prediction_mean_diff,perm_p,0.0004998
+mutation_count_mean_diff,obs,1.1227
+mutation_count_mean_diff,perm_p,0.0004998
+diversity_mean_pairwise,obs,8.5579
+diversity_mean_pairwise,perm_p,0.0004998
+glyco_motif_new_rate_top,rate,0.0000
+glyco_motif_new_rate_bg,rate,0.0532
+glyco_motif_fisher_p,p,0.6226

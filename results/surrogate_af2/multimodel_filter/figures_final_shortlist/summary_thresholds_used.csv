@@ -1,0 +1,12 @@
+stage,criterion,threshold
+Sequence filter,mut_count,<= 5
+Sequence filter,protected_mutations,== 0
+Sequence filter,disulfide_seq_ok,True
+Sequence filter,glyco_motif_new,False
+Sequence filter,duplicate_sequence,False
+Sequence filter,in_training_seq,False
+Rosetta filter,ddg_reu,<= 0.0
+AF2 confidence filter,af2_ranked0_plddt_mean,>= 90
+AF2 confidence filter,af2_ranked0_plddt_key_mean,>= 90
+AF2 geometry filter,af2_triad_ser160_his237 & af2_triad_asp206_his237,<= 5.0 A
+AF2 geometry filter,af2_disulfide_203_239_dist & af2_disulfide_273_289_dist,<= 2.8 A

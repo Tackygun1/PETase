@@ -1,0 +1,9 @@
+stage,count,pct_of_pool,pct_of_previous
+Context candidate pool,27917,100.0,
+Top-N selected,500,1.7910233907654833,1.7910233907654833
+Sequence QC pass,500,1.7910233907654833,100.0
+Rosetta scored,500,1.7910233907654833,100.0
+Rosetta ddG <= 0 REU,38,0.13611777769817673,7.6
+AF2 completed,38,0.13611777769817673,100.0
+AF2 quality+geometry pass,38,0.13611777769817673,100.0
+Final combined pass,38,0.13611777769817673,100.0

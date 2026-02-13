@@ -1,0 +1,15 @@
+metric,value
+n_shortlist,38
+n_af2_complete,38
+n_rosetta_pass_ddg_le_0,38
+n_af2_pass_all,38
+n_combined_structural_pass,38
+pred_residual_mean,2.7117328447368423
+pred_residual_min,2.5668764
+pred_residual_max,2.9538462
+ddg_reu_mean,-36.00290350877192
+ddg_reu_min,-124.2063333333333
+ddg_reu_max,-0.5793333333333521
+af2_ranked0_plddt_mean_mean,94.19707622504536
+af2_ranked0_plddt_mean_min,94.04131034482758
+af2_ranked0_plddt_mean_max,94.35610344827585

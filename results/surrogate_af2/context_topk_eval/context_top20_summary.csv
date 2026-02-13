@@ -1,0 +1,2 @@
+global_baseline,top20_mean_residual,top20_median_residual,top20_mean_abs_global,top20_median_abs_global,top20_plddt_mean_avg,top20_plddt_min_avg,top20_af2_pass_rate,top20_protected_mutations_rate,top20_disulfide_ok_rate,top20_glyco_new_rate,top20_duplicate_rate,top20_in_training_rate
+-0.5,0.030722880785,0.0333259265,-0.4692771192149999,-0.4666740735,,,,,1.0,0.05,0.0,0.0

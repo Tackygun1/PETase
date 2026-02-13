@@ -1,0 +1,11 @@
+metric,value
+rmse,2.459062
+mae,1.737766
+r2,0.918106
+pearson,0.972801
+spearman,0.961373
+mean_true,-0.048742
+mean_pred,-0.051707
+n,208.000000
+fit_slope,0.782877
+fit_intercept,-0.013548
