@@ -33,6 +33,12 @@ QC_OUT="${QC_OUT:-${ROOT_DIR}/results/surrogate_af2/context_top${TOPK}_100k_qc.c
 MODEL_PATH="${MODEL_PATH:-${ROOT_DIR}/models/fireprot_context_xgb_dtm_q20.json}"
 BASELINES_PATH="${BASELINES_PATH:-${ROOT_DIR}/models/fireprot_context_baselines.json}"
 
+ROSETTA_BIN="${ROSETTA_BIN:-}"
+WT_PDB="${WT_PDB:-}"
+ROSETTA_OUT_DIR="${ROSETTA_OUT_DIR:-${ROOT_DIR}/results/surrogate_af2/rosetta_top${TOPK}_100k}"
+ROSETTA_SCORE_CSV="${ROSETTA_SCORE_CSV:-${ROSETTA_OUT_DIR}/rosetta_ddg.csv}"
+COMBINED_CSV="${COMBINED_CSV:-${ROOT_DIR}/results/surrogate_af2/context_top${TOPK}_100k_combined.csv}"
+
 if [[ ! -f "${VENV_PATH}/bin/activate" ]]; then
   echo "Missing venv at ${VENV_PATH}. Set VENV_PATH or create the venv." >&2
   exit 1
@@ -178,6 +184,57 @@ PYTHONPATH=. python "${ROOT_DIR}/scripts/qc_candidates.py" \
   --train-seq-db "${SEQUENCE_DB}" \
   --predictions "${QC_PRED}" \
   --out "${QC_OUT}"
+
+if [[ -n "${ROSETTA_BIN}" && -n "${WT_PDB}" && -f "${ROSETTA_BIN}" && -f "${WT_PDB}" ]]; then
+  echo "Preparing Rosetta mutfiles..."
+  MUTFILE_DIR="${ROSETTA_OUT_DIR}/mutfiles"
+  PYTHONPATH=. python "${ROOT_DIR}/scripts/prepare_rosetta_mutfiles.py" \
+    --candidates-fasta "${TOPK_FASTA}" \
+    --wt-fasta "${PARENT_FASTA}" \
+    --out-dir "${MUTFILE_DIR}"
+
+  echo "Running Rosetta cartesian_ddg..."
+  PYTHONPATH=. python "${ROOT_DIR}/scripts/run_rosetta_cartesian_ddg.py" \
+    --mutfile-dir "${MUTFILE_DIR}" \
+    --wt-pdb "${WT_PDB}" \
+    --rosetta-bin "${ROSETTA_BIN}" \
+    --out "${ROSETTA_SCORE_CSV}"
+
+  echo "Combining surrogate + Rosetta scores..."
+  python - <<PY
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+topk_csv = Path("${TOPK_CSV}")
+rosetta_csv = Path("${ROSETTA_SCORE_CSV}")
+out_csv = Path("${COMBINED_CSV}")
+
+top = pd.read_csv(topk_csv)
+ros = pd.read_csv(rosetta_csv)
+df = top.merge(ros, on="id", how="left")
+
+if "pred_residual" not in df.columns:
+    raise SystemExit("Missing pred_residual in top-k CSV.")
+if "ddg" not in df.columns:
+    raise SystemExit("Missing ddg in Rosetta CSV.")
+
+def zscore(x):
+    mu = np.nanmean(x)
+    sd = np.nanstd(x)
+    return (x - mu) / sd if sd > 0 else x * 0.0
+
+df["z_pred"] = zscore(df["pred_residual"].astype(float))
+df["z_ddg"] = zscore((-df["ddg"]).astype(float))  # lower ddg = better
+df["combined_score"] = df["z_pred"] + df["z_ddg"]
+
+out_csv.parent.mkdir(parents=True, exist_ok=True)
+df.sort_values("combined_score", ascending=False).to_csv(out_csv, index=False)
+print(f"Wrote {out_csv}")
+PY
+else
+  echo "Skipping Rosetta: set ROSETTA_BIN and WT_PDB to valid paths."
+fi
 
 echo "Done. Top-k: ${TOPK_CSV}"
 echo "QC report: ${QC_OUT}"
